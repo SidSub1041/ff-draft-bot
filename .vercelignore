@@ -1,0 +1,20 @@
+# Vercel hosts only the static site; the engine deploys to Fly/Render
+# (see DEPLOY.md). Hiding the Python project stops Vercel's framework
+# detection from demanding an entrypoint it must never run.
+.git
+.venv
+.pytest_cache
+ffbot
+tests
+scripts
+extension
+store
+data
+pyproject.toml
+Dockerfile
+fly.toml
+render.yaml
+DEPLOY.md
+README.md
+.gitignore
+.mcp.json
