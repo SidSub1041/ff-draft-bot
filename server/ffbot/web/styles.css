@@ -706,3 +706,56 @@ table.board th, table.board td {
   border-radius:8px;padding:9px 11px;margin-top:6px;font:13px var(--sans);
   cursor:pointer}
 #wYahooLeagues button:hover{border-color:var(--accent)}
+
+
+/* --------------------------------------------- brand family, per pane */
+/* One family, three signatures: board wears the Sleeper blue, best-
+   available wears the green of a value pill, chat wears violet.  Same
+   navy cockpit underneath - the landing page's palette, draft-tuned. */
+
+:root{
+  --sig-board:#2ea9ff; --sig-bypos:#4cd08a; --sig-chat:#b78bf0;
+}
+.hdr-mark{width:26px;height:26px;border-radius:8px;flex:none;display:grid;
+  place-items:center;font:700 12px "Poppins",var(--sans);color:#fff;
+  background:linear-gradient(135deg,var(--sig-board),#0769de);margin-right:2px}
+#hdr{background:linear-gradient(180deg,var(--bg-1),var(--bg))}
+
+.kick{font:600 11px "Poppins",var(--sans);font-style:normal;
+  letter-spacing:.12em;text-transform:uppercase}
+.k-board{color:var(--sig-board)} .k-bypos{color:var(--sig-bypos)}
+.k-chat{color:var(--sig-chat)}
+#boardPane .pane-head{box-shadow:inset 0 2px 0 var(--sig-board)}
+#byposPane .pane-head{box-shadow:inset 0 2px 0 var(--sig-bypos)}
+#chatPane .pane-head{box-shadow:inset 0 2px 0 var(--sig-chat)}
+.pane-head{background:var(--bg-1)}
+
+/* board: cards for cells, a glowing you-column */
+.board td .cell{border-radius:5px}
+.board td.mine .cell{box-shadow:inset 0 0 0 1.5px var(--sig-board)}
+.board th{font:600 10.5px "Poppins",var(--sans);letter-spacing:.06em}
+
+/* best available: each position column signs itself */
+.poscol{border:1px solid var(--line);border-radius:10px}
+.poshead{border-bottom:0;padding:7px 9px}
+.poscol:nth-child(1) .poshead{box-shadow:inset 0 2px 0 var(--qb)}
+.poscol:nth-child(2) .poshead{box-shadow:inset 0 2px 0 var(--rb)}
+.poscol:nth-child(3) .poshead{box-shadow:inset 0 2px 0 var(--wr)}
+.poscol:nth-child(4) .poshead{box-shadow:inset 0 2px 0 var(--te)}
+.poshead .pos{font:700 12px "Poppins",var(--sans)}
+
+/* chat: the landing's bubble language, cockpit colours */
+.msg.user .bubble{background:linear-gradient(135deg,#0769de,var(--sig-board));
+  border:0;border-bottom-right-radius:4px}
+.msg.bot .bubble{background:var(--bg-1);border:1px solid var(--line);
+  border-bottom-left-radius:4px}
+.msg .who{font:500 10px "Poppins",var(--sans);letter-spacing:.04em}
+#chatForm button.primary,.w-form .primary{
+  background:linear-gradient(135deg,var(--sig-board),#0769de);border:0}
+.chips button{border-radius:99px;font-family:"Poppins",var(--sans)}
+
+/* compact tabs pick up the signatures */
+.compact-tabs button:nth-child(1).on{box-shadow:inset 0 -2px 0 var(--sig-bypos)}
+.compact-tabs button:nth-child(2).on{box-shadow:inset 0 -2px 0 var(--sig-board)}
+.compact-tabs button:nth-child(3).on{box-shadow:inset 0 -2px 0 var(--sig-chat)}
+.compact-tabs button{font-family:"Poppins",var(--sans)}

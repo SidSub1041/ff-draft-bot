@@ -25,6 +25,7 @@
 
 <header id="hdr">
   <div class="hdr-id">
+    <span class="hdr-mark" aria-hidden="true">SD</span>
     <span id="dot" class="dot red" title="disconnected"></span>
     <h1 id="draftName">not connected</h1>
     <span id="badges" class="badges"></span>
@@ -227,7 +228,7 @@
   <!-- ------------------------------------------------------ left: board -->
   <section id="boardPane" class="pane" aria-labelledby="boardTitle">
     <div class="pane-head">
-      <h2 id="boardTitle">Draft board</h2>
+      <h2 id="boardTitle"><i class="kick k-board">Live board</i></h2>
       <div id="legend" class="legend"></div>
       <button id="btnNow" class="ghost small" hidden>jump to now</button>
     </div>
@@ -252,7 +253,7 @@
 
     <section id="byposPane" aria-labelledby="byposTitle">
       <div class="pane-head">
-        <h2 id="byposTitle">Best by position</h2>
+        <h2 id="byposTitle"><i class="kick k-bypos">Best available</i></h2>
         <span id="byposPick" class="dim num"></span>
       </div>
       <p id="scriptSays" class="script">&mdash;</p>
@@ -261,7 +262,7 @@
 
     <section id="chatPane" aria-labelledby="chatTitle">
       <div class="pane-head">
-        <h2 id="chatTitle">Chat</h2>
+        <h2 id="chatTitle"><i class="kick k-chat">Copilot chat</i></h2>
         <span class="dim keyhint">/ focus &middot; ⇧⏎ newline &middot; ↑↓ history
           &middot; ⇥ complete &middot; ⌃L clear</span>
       </div>

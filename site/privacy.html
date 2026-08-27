@@ -5,118 +5,38 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Privacy Policy — Draft Copilot</title>
 <meta name="description" content="What Draft Copilot collects, what it doesn't, and how long anything sticks around.">
+<link rel="stylesheet" href="/assets/fonts/poppins.css">
 <style>
-  :root {
-    color-scheme: dark light;
-    --bg: #0e1420;
-    --bg-panel: #161e2e;
-    --ink: #e6ebf3;
-    --ink-muted: #9aa7bb;
-    --accent: #4fd08c;
-    --border: #26324a;
-    --code-bg: #1c2638;
-  }
-  @media (prefers-color-scheme: light) {
-    :root {
-      --bg: #f7f9fc;
-      --bg-panel: #ffffff;
-      --ink: #16202f;
-      --ink-muted: #5b6b84;
-      --accent: #147a4a;
-      --border: #d7dfeb;
-      --code-bg: #edf1f7;
-    }
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
-  }
-  header.site {
-    border-bottom: 1px solid var(--border);
-    padding: 14px 20px;
-  }
-  header.site nav {
-    max-width: 760px;
-    margin: 0 auto;
-    display: flex;
-    align-items: baseline;
-    gap: 18px;
-    flex-wrap: wrap;
-  }
-  .wordmark {
-    font-weight: 700;
-    font-size: 17px;
-    color: var(--ink);
-    text-decoration: none;
-    letter-spacing: 0.01em;
-  }
-  header.site a.navlink {
-    color: var(--ink-muted);
-    text-decoration: none;
-    font-size: 14px;
-  }
-  header.site a.navlink:hover { color: var(--ink); }
-  main {
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 40px 20px 72px;
-  }
-  h1 { font-size: 30px; line-height: 1.2; margin: 0 0 6px; }
-  .meta { color: var(--ink-muted); font-size: 14px; margin: 0 0 28px; }
-  h2 {
-    font-size: 20px;
-    margin: 40px 0 10px;
-    padding-top: 18px;
-    border-top: 1px solid var(--border);
-  }
-  h3 { font-size: 16px; margin: 22px 0 6px; }
-  p, li { color: var(--ink); }
-  p { margin: 0 0 14px; }
-  ul { margin: 0 0 14px; padding-left: 22px; }
-  li { margin-bottom: 6px; }
-  a { color: var(--accent); }
-  .tldr {
-    background: var(--bg-panel);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 18px 20px;
-    margin: 0 0 8px;
-  }
-  .tldr h2 { border: none; margin: 0 0 8px; padding: 0; font-size: 16px; }
-  .tldr ul { margin-bottom: 0; }
-  code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.9em;
-    background: var(--code-bg);
-    padding: 1px 5px;
-    border-radius: 4px;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 14.5px;
-    margin: 0 0 14px;
-  }
-  th, td {
-    text-align: left;
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--border);
-    vertical-align: top;
-  }
-  th { color: var(--ink-muted); font-weight: 600; }
-  .table-wrap { overflow-x: auto; }
-  footer.site {
-    border-top: 1px solid var(--border);
-    padding: 22px 20px 34px;
-    color: var(--ink-muted);
-    font-size: 14px;
-  }
-  footer.site .inner { max-width: 760px; margin: 0 auto; }
-  footer.site a { color: var(--ink-muted); }
+  :root{--navy:#0d1b2e;--ink:#16283f;--dim:#51637c;--blue:#0e9bff;
+    --deep:#0769de;--tint:#eef6ff;--tint2:#e2f0ff;--line:#dce7f2;
+    --sans:'Poppins',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}
+  *{box-sizing:border-box;margin:0}
+  body{font:15px/1.7 var(--sans);color:var(--ink);background:var(--tint)}
+  a{color:var(--deep)}
+  header.site{background:var(--navy);padding:14px 22px}
+  header.site .wrap,main{max-width:860px;margin:0 auto}
+  header.site a{color:#fff;font-weight:700;text-decoration:none;font-size:16px}
+  header.site a span{color:var(--blue)}
+  main{padding:34px 22px 60px}
+  h1{color:var(--navy);font-size:28px;margin-bottom:6px}
+  .meta{color:var(--dim);font-size:13px;margin-bottom:26px}
+  /* privacy reads as cards: each promise its own tile */
+  h2{color:var(--navy);font-size:17px;margin:0 0 10px}
+  main>h2{margin-top:8px}
+  section,main>h2+p,main>h2+ul{background:#fff}
+  h2,p,ul{max-width:none}
+  main>h2{background:#fff;border:1px solid var(--line);border-bottom:0;
+    border-radius:12px 12px 0 0;padding:18px 20px 0;
+    box-shadow:inset 0 3px 0 var(--blue)}
+  main>h2~p,main>h2~ul{border-left:1px solid var(--line);
+    border-right:1px solid var(--line);padding:0 20px 14px}
+  p,ul{color:var(--dim);margin-bottom:12px}
+  ul{padding-left:38px}
+  li{margin-bottom:8px}
+  code{background:var(--tint2);border-radius:5px;padding:1px 6px;font-size:13px}
+  strong{color:var(--ink)}
+  /* close each card before the next h2 */
+  main{display:block}
 </style>
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
@@ -124,7 +44,7 @@
 
 <header class="site">
   <nav>
-    <a class="wordmark" href="/">Draft Copilot</a>
+    <a class="wordmark" href="/">Sid's <span>Draft Copilot</span></a>
     <a class="navlink" href="/about">About</a>
     <a class="navlink" href="/privacy" aria-current="page">Privacy</a>
     <a class="navlink" href="/terms">Terms</a>
@@ -133,14 +53,18 @@
 
 <main>
   <h1>Privacy Policy</h1>
-  <p class="meta">Effective EFFECTIVE_DATE &middot; Applies to the Draft Copilot web service at sidsffcopilot.com and the Draft Copilot Chrome extension.</p>
+  <p class="meta">Effective August 28, 2026 &middot; Applies to the Draft Copilot web service at sidsffcopilot.com and the Draft Copilot Chrome extension.</p>
 
   <div class="tldr">
     <h2>The short version</h2>
     <ul>
-      <li>No accounts. No email addresses. No ads, analytics, or trackers.</li>
+      <li>Accounts are optional. Drafting needs no sign-up at all; a free
+          Google sign-in exists only to save your drafts for review.</li>
+      <li>No ads, no cross-site tracking, no selling data. The marketing
+          pages count visits with cookieless analytics; the app itself has
+          none.</li>
       <li>We see the draft you connect (which is public data on your fantasy platform), your chat messages, and standard server logs. That's it.</li>
-      <li>Everything tied to your session is deleted automatically after SESSION_TTL_HOURS hours of inactivity.</li>
+      <li>Everything tied to your session is deleted automatically after six hours of inactivity.</li>
       <li>The Chrome extension reads nothing from any web page. It only shows our app next to your draft room.</li>
     </ul>
   </div>
@@ -183,8 +107,30 @@
     </table>
   </div>
   <p><strong>Sessions are anonymous.</strong> When you start using the app we issue a random session token so your strategy settings and chat history follow you during the draft. It is not linked to an account, an email, or your identity &mdash; we don't have accounts and we don't collect email addresses.</p>
-  <p><strong>Sessions expire.</strong> A session and everything attached to it &mdash; including its chat history &mdash; is deleted after SESSION_TTL_HOURS hours of inactivity. We do not keep chat archives.</p>
-  <p><strong>Server logs.</strong> Like nearly every web service, our servers keep short-lived request logs: IP address, request path, and response status. We use them only to spot abuse and keep the service up, and they are deleted after LOG_RETENTION_DAYS days.</p>
+  <p><strong>Sessions expire.</strong> A session and everything attached to it &mdash; including its chat history &mdash; is deleted after six hours of inactivity. We do not keep chat archives.</p>
+  <p><strong>Server logs.</strong> Like nearly every web service, our servers keep short-lived request logs: IP address, request path, and response status. We use them only to spot abuse and keep the service up, and they are kept no more than 30 days.</p>
+
+  <h2 id="accounts">Accounts (optional)</h2>
+  <p>Everything on this page works without an account. If you sign in with
+     Google, here is exactly what changes:</p>
+  <ul>
+    <li><strong>What we store:</strong> your name and email address as Google
+        reports them, a Google account identifier, and &mdash; if you link one
+        &mdash; a Sleeper username. Signing in never gives us a password;
+        Google handles that entirely.</li>
+    <li><strong>What it is for:</strong> drafts you connect while signed in are
+        archived to your account (picks, the engine's recommendations, your
+        notes) so you can review them later, and your saved strategy settings
+        follow you between drafts.</li>
+    <li><strong>Review questions</strong> you ask about an archived draft may
+        be processed by the language model described below, with a daily
+        per-account limit.</li>
+    <li><strong>Sleeper linking is not a sign-in.</strong> Sleeper has no
+        login system we can use; linking a username is a label on your
+        account, nothing more.</li>
+    <li><strong>Deletion:</strong> email CONTACT_EMAIL and we will delete your
+        account and its archives.</li>
+  </ul>
 
   <h2 id="yahoo">Yahoo Fantasy (beta)</h2>
   <p>Connecting a Yahoo draft uses Yahoo's standard OAuth flow:</p>

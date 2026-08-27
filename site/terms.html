@@ -5,93 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Terms of Use — Draft Copilot</title>
 <meta name="description" content="Short, honest terms for using Draft Copilot.">
+<link rel="stylesheet" href="/assets/fonts/poppins.css">
 <style>
-  :root {
-    color-scheme: dark light;
-    --bg: #0e1420;
-    --bg-panel: #161e2e;
-    --ink: #e6ebf3;
-    --ink-muted: #9aa7bb;
-    --accent: #4fd08c;
-    --border: #26324a;
-  }
-  @media (prefers-color-scheme: light) {
-    :root {
-      --bg: #f7f9fc;
-      --bg-panel: #ffffff;
-      --ink: #16202f;
-      --ink-muted: #5b6b84;
-      --accent: #147a4a;
-      --border: #d7dfeb;
-    }
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          Helvetica, Arial, sans-serif;
-  }
-  header.site {
-    border-bottom: 1px solid var(--border);
-    padding: 14px 20px;
-  }
-  header.site nav {
-    max-width: 760px;
-    margin: 0 auto;
-    display: flex;
-    align-items: baseline;
-    gap: 18px;
-    flex-wrap: wrap;
-  }
-  .wordmark {
-    font-weight: 700;
-    font-size: 17px;
-    color: var(--ink);
-    text-decoration: none;
-    letter-spacing: 0.01em;
-  }
-  header.site a.navlink {
-    color: var(--ink-muted);
-    text-decoration: none;
-    font-size: 14px;
-  }
-  header.site a.navlink:hover { color: var(--ink); }
-  main {
-    max-width: 760px;
-    margin: 0 auto;
-    padding: 40px 20px 72px;
-  }
-  h1 { font-size: 30px; line-height: 1.2; margin: 0 0 6px; }
-  .meta { color: var(--ink-muted); font-size: 14px; margin: 0 0 28px; }
-  h2 {
-    font-size: 20px;
-    margin: 36px 0 10px;
-    padding-top: 18px;
-    border-top: 1px solid var(--border);
-  }
-  p { margin: 0 0 14px; }
-  ul { margin: 0 0 14px; padding-left: 22px; }
-  li { margin-bottom: 6px; }
-  a { color: var(--accent); }
-  .callout {
-    background: var(--bg-panel);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--accent);
-    border-radius: 10px;
-    padding: 16px 20px;
-    margin: 0 0 8px;
-  }
-  .callout p { margin: 0; }
-  footer.site {
-    border-top: 1px solid var(--border);
-    padding: 22px 20px 34px;
-    color: var(--ink-muted);
-    font-size: 14px;
-  }
-  footer.site .inner { max-width: 760px; margin: 0 auto; }
-  footer.site a { color: var(--ink-muted); }
+  :root{--navy:#0d1b2e;--ink:#16283f;--dim:#51637c;--blue:#0e9bff;
+    --deep:#0769de;--line:#dce7f2;
+    --sans:'Poppins',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}
+  *{box-sizing:border-box;margin:0}
+  /* terms reads as a ruled document - same family, quieter voice */
+  body{font:15px/1.75 var(--sans);color:var(--ink);background:#fff}
+  a{color:var(--deep)}
+  header.site{border-bottom:3px solid var(--blue);padding:14px 22px}
+  header.site .wrap,main{max-width:760px;margin:0 auto}
+  header.site a{color:var(--navy);font-weight:700;text-decoration:none;font-size:16px}
+  header.site a span{color:var(--deep)}
+  main{padding:34px 22px 60px}
+  h1{color:var(--navy);font-size:26px;margin-bottom:6px}
+  .meta{color:var(--dim);font-size:13px;margin-bottom:30px}
+  h2{color:var(--navy);font-size:16px;margin:26px 0 8px;padding-top:16px;
+    border-top:1px solid var(--line)}
+  p,ul{color:var(--dim);margin-bottom:12px}
+  ul{padding-left:22px}
+  li{margin-bottom:7px}
+  code{background:#f1f6fc;border-radius:5px;padding:1px 6px;font-size:13px}
+  strong{color:var(--ink)}
 </style>
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
@@ -99,7 +35,7 @@
 
 <header class="site">
   <nav>
-    <a class="wordmark" href="/">Draft Copilot</a>
+    <a class="wordmark" href="/">Sid's <span>Draft Copilot</span></a>
     <a class="navlink" href="/about">About</a>
     <a class="navlink" href="/privacy">Privacy</a>
     <a class="navlink" href="/terms" aria-current="page">Terms</a>
@@ -108,7 +44,7 @@
 
 <main>
   <h1>Terms of Use</h1>
-  <p class="meta">Effective EFFECTIVE_DATE &middot; Applies to the Draft Copilot web service at sidsffcopilot.com and the Draft Copilot Chrome extension.</p>
+  <p class="meta">Effective August 28, 2026 &middot; Applies to the Draft Copilot web service at sidsffcopilot.com and the Draft Copilot Chrome extension.</p>
 
   <div class="callout">
     <p><strong>The one rule that matters:</strong> Draft Copilot advises. You pick. It never makes a selection for you, and every decision at the draft table &mdash; and its consequences &mdash; is yours.</p>
