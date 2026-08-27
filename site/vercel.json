@@ -2,7 +2,7 @@
   "cleanUrls": true,
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/((?!app$|api/).*)",
       "headers": [
         {
           "key": "Content-Security-Policy",
@@ -25,6 +25,16 @@
           "value": "max-age=15552000; includeSubDomains"
         }
       ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/app",
+      "destination": "https://sids-draft-copilot.fly.dev/app"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://sids-draft-copilot.fly.dev/api/:path*"
     }
   ]
 }

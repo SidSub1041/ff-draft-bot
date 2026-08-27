@@ -1,8 +1,8 @@
 # Fly.io config for Draft Copilot (ffbot).
 # Replace the app name before `fly launch` / `fly deploy`.
 
-app = "ffbot-CHANGE-ME"
-primary_region = "ord"  # pick the region closest to your users
+app = "sids-draft-copilot"
+primary_region = "iad"
 
 [build]
   dockerfile = "Dockerfile"
