@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sid's Draft Copilot — web app status</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#0d1b2e;--ink:#16283f;--ink-dim:#51637c;--blue:#0e9bff;
+        --blue-deep:#0769de;--tint:#eef6ff;--line:#dce7f2;
+        --sans:'Poppins',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}
+  *{box-sizing:border-box;margin:0}
+  body{font:15px/1.65 var(--sans);color:var(--ink);background:var(--tint);
+       min-height:100vh;display:grid;place-items:center;padding:24px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;
+        box-shadow:0 10px 34px rgba(13,27,46,.12);max-width:560px;padding:38px}
+  .kicker{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+          color:var(--blue)}
+  h1{font-size:24px;color:var(--navy);margin:8px 0 12px}
+  p{color:var(--ink-dim);margin-bottom:14px}
+  .btn{display:inline-block;padding:12px 22px;border-radius:10px;font-weight:600;
+       background:var(--blue-deep);color:#fff;text-decoration:none;margin:6px 8px 6px 0}
+  .btn.ghost{background:#fff;color:var(--blue-deep);border:1.5px solid var(--line)}
+  ol{margin:10px 0 16px 20px;color:var(--ink-dim)}
+  ol li{margin-bottom:8px}
+  code{background:var(--tint);border:1px solid var(--line);border-radius:6px;
+       padding:2px 7px;font-size:13px}
+  a{color:#0a5bb5}
+  .note{font-size:13px;border-top:1px solid var(--line);padding-top:14px;margin-top:6px}
+</style>
+</head>
+<body>
+<main class="card">
+  <span class="kicker">Sid's Draft Copilot</span>
+  <h1>The hosted web app isn't live yet</h1>
+  <p>The always-on hosted version of the copilot is still being stood up. Two ways to
+     draft with it today:</p>
+
+  <h1 style="font-size:17px">1 · Install the extension</h1>
+  <ol>
+    <li><a href="/assets/draft-copilot-extension.zip"><b>Download the extension</b></a>
+        and unzip it.</li>
+    <li>Open <code>chrome://extensions</code>, switch on <b>Developer mode</b>
+        (top right).</li>
+    <li>Click <b>Load unpacked</b> and choose the unzipped folder.</li>
+    <li>Open a Sleeper draft — the copilot docks on the right. (It talks to a copilot
+        server; see the self-host guide for running one.)</li>
+  </ol>
+
+  <h1 style="font-size:17px">2 · Self-host the whole thing</h1>
+  <p>The engine, panel and extension are open source — one command runs everything
+     locally: <a href="GITHUB_LINK">GITHUB_LINK</a></p>
+
+  <a class="btn" href="/assets/draft-copilot-extension.zip">Download the extension</a>
+  <a class="btn ghost" href="/">Back to the site</a>
+
+  <p class="note">A one-click Chrome Web Store install is in review-prep; this page will
+     become the live web app once the hosted engine ships. Advisory only — the copilot
+     never makes a pick for you.</p>
+</main>
+</body>
+</html>

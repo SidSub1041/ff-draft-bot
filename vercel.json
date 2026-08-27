@@ -1,8 +1,4 @@
 {
   "cleanUrls": true,
-  "outputDirectory": "site",
-  "rewrites": [
-    { "source": "/app", "destination": "https://YOUR_APP_HOST/app" },
-    { "source": "/api/:path*", "destination": "https://YOUR_APP_HOST/api/:path*" }
-  ]
+  "outputDirectory": "site"
 }
