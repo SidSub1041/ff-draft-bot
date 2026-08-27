@@ -4,9 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sid's Draft Copilot — web app status</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/fonts/poppins.css">
 <style>
   :root{--navy:#0d1b2e;--ink:#16283f;--ink-dim:#51637c;--blue:#0e9bff;
         --blue-deep:#0769de;--tint:#eef6ff;--line:#dce7f2;
@@ -38,10 +36,20 @@
   <p>The always-on hosted version of the copilot is still being stood up. Two ways to
      draft with it today:</p>
 
+  <div style="border:1.5px solid var(--line);border-radius:10px;padding:14px 16px;
+              background:var(--tint);margin-bottom:18px">
+    <b style="color:var(--navy)">Read this before downloading.</b>
+    <p style="margin:6px 0 0">The extension asks for no account, reads no page content,
+       and cannot make picks - it only shows the copilot beside your draft. Its full
+       source is public at <a href="GITHUB_LINK">GITHUB_LINK</a>, so you can read every
+       line before loading it. Chrome will warn about Developer-mode extensions; that
+       warning is about the install method, and the one-click Web Store version
+       (which passes Google's review) is in preparation.</p>
+  </div>
+
   <h1 style="font-size:17px">1 · Install the extension</h1>
   <ol>
-    <li><a href="/assets/draft-copilot-extension.zip"><b>Download the extension</b></a>
-        and unzip it.</li>
+    <li>Download the extension with the button below, then unzip it.</li>
     <li>Open <code>chrome://extensions</code>, switch on <b>Developer mode</b>
         (top right).</li>
     <li>Click <b>Load unpacked</b> and choose the unzipped folder.</li>
@@ -53,7 +61,11 @@
   <p>The engine, panel and extension are open source — one command runs everything
      locally: <a href="GITHUB_LINK">GITHUB_LINK</a></p>
 
-  <a class="btn" href="/assets/draft-copilot-extension.zip">Download the extension</a>
+  <a class="btn" href="/assets/draft-copilot-extension.zip"
+     download="draft-copilot-extension.zip">Download the extension</a>
+  <p class="note" style="border:0;margin:4px 0 0;padding:0">Verify your download
+     (Terminal: <code>shasum -a 256 draft-copilot-extension.zip</code>):<br>
+     <code style="word-break:break-all">SHA-256 b38e6d66b877818d9070535f06148a25bd281e38ecde4e3a0c818c660afd0fbf</code></p>
   <a class="btn ghost" href="/">Back to the site</a>
 
   <p class="note">A one-click Chrome Web Store install is in review-prep; this page will

@@ -1,0 +1,6 @@
+# Sid's Draft Copilot - security contact
+Contact: mailto:CONTACT_EMAIL
+Expires: 2027-09-01T00:00:00.000Z
+Preferred-Languages: en
+Policy: https://ff-draft-bot-sid-subramanians-projects.vercel.app/privacy
+# The engine, panel and extension are open source; reports welcome.
