@@ -1378,7 +1378,7 @@ def _inject_token(html: str, token: str) -> str:
     return f"{tag}\n{html}"
 
 
-SITE = Path(__file__).resolve().parents[1] / "site"
+SITE = Path(__file__).resolve().parents[2] / "site"
 SITE_PAGES = {"/privacy": "privacy.html", "/terms": "terms.html"}
 
 

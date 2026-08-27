@@ -2,10 +2,10 @@
 __pycache__/
 *.pyc
 *.egg-info/
-data/cache/
-data/ffbot.db
-data/strategies/*.json
-data/raw/
+server/data/cache/
+server/data/ffbot.db
+server/data/strategies/*.json
+server/data/raw/
 .pytest_cache/
 .DS_Store
 *.log

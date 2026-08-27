@@ -15,7 +15,7 @@ import re
 import unicodedata
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[1] / "server"
 SRC = ROOT / "data" / "raw" / "joel_smyth_2026_guide.txt"
 OUT = ROOT / "data" / "guide_2026.json"
 

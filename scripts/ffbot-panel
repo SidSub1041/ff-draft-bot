@@ -109,7 +109,7 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-CACHE="$ROOT/data/cache"
+CACHE="$ROOT/server/data/cache"
 LOG="$CACHE/panel-$PORT.log"
 PIDFILE="$CACHE/panel-$PORT.pid"
 URL="http://127.0.0.1:$PORT/"

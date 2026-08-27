@@ -5,7 +5,7 @@
       "args": ["-m", "ffbot.mcp_server"],
       "cwd": "/Users/sid/ff-draft-bot",
       "env": {
-        "PYTHONPATH": "/Users/sid/ff-draft-bot"
+        "PYTHONPATH": "/Users/sid/ff-draft-bot/server"
       }
     }
   }

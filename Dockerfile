@@ -12,21 +12,24 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-COPY pyproject.toml ./
-COPY ffbot/ ./ffbot/
-COPY data/guide_2026.json data/rookies_2026.json ./data/
+COPY server/pyproject.toml ./server/
+COPY server/ffbot/ ./server/ffbot/
+COPY server/data/guide_2026.json server/data/rookies_2026.json ./server/data/
+COPY site/ ./site/
 
-RUN pip install --no-cache-dir ".[llm]"
+RUN pip install --no-cache-dir "./server[llm]"
 
 # Non-root runtime user. It needs write access to /app/data because the
 # SQLite db (data/ffbot.db) lives there - ephemeral by design for v1.
 RUN useradd --create-home --uid 10001 ffbot \
-    && chown -R ffbot:ffbot /app/data
+    && chown -R ffbot:ffbot /app/server/data
 
 USER ffbot
 
 ENV FFBOT_PUBLIC=1
 
 EXPOSE 8080
+
+WORKDIR /app/server
 
 CMD ["python", "-m", "ffbot.cli", "serve", "--host", "0.0.0.0", "--port", "8080", "--public"]
