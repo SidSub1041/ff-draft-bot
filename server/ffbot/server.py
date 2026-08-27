@@ -1595,10 +1595,17 @@ def _api_my_review_chat(req: Req) -> dict:
 
 
 def _request_base(req: Req, handler_headers) -> str:
-    """scheme://host for redirect URIs, honouring the TLS proxy's header."""
-    host = handler_headers.get("Host") or "127.0.0.1"
-    proto = handler_headers.get("X-Forwarded-Proto") or \
-        ("https" if _PUBLIC else "http")
+    """scheme://host for redirect URIs, as the USER's browser saw them.
+
+    Behind the Vercel proxy the Host header is rewritten to this machine's
+    own hostname; the domain the user is actually on arrives in
+    X-Forwarded-Host.  Building callbacks from Host would bounce a Vercel
+    visitor's sign-in cookie onto the wrong domain.
+    """
+    host = (handler_headers.get("X-Forwarded-Host")
+            or handler_headers.get("Host") or "127.0.0.1").split(",")[0].strip()
+    proto = (handler_headers.get("X-Forwarded-Proto")
+             or ("https" if _PUBLIC else "http")).split(",")[0].strip()
     return f"{proto}://{host}"
 
 
