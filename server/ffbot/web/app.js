@@ -39,6 +39,8 @@ const DEFAULT_CHIPS = [
 const S = {
   connected: false,
   sid: "",
+  account: null,        // /api/account payload
+  reviewDraft: null,    // archived draft id while in review mode
   state: null,
   errors: 0,
   stamp: 0,
@@ -917,6 +919,7 @@ async function send(text) {
   pushHistory(message);
   S.chat.idx = null;
   S.chat.comp = null;
+  if (S.reviewDraft) { await sendReview(message); return; }
   addUser(message);
   showTyping();
   S.chat.busy = true;
@@ -1188,6 +1191,13 @@ function wire() {
     setMenuOpen($("menu").hidden);
   });
   $("connectForm").addEventListener("submit", doConnect);
+  const ab = $("acctBtn");
+  if (ab) ab.addEventListener("click", function () {
+    const m = $("acctMenu");
+    if (m.hidden) acctMenuItems();
+    m.hidden = !m.hidden;
+    ab.setAttribute("aria-expanded", m.hidden ? "false" : "true");
+  });
   $("mockForm").addEventListener("submit", doMock);
 
   $("presetApply").addEventListener("click", async function () {
@@ -1305,6 +1315,14 @@ async function boot() {
   setInterval(paintUpdated, 1000);
   initCompactTabs();
   wireWelcome();
+  wirePlatformTabs();
+  const qs = new URLSearchParams(location.search);
+  if (qs.get("session")) {
+    rememberSession(qs.get("session"));
+    history.replaceState(null, "", location.pathname);
+    if (qs.get("yahoo") === "linked") loadYahooLeagues();
+  }
+  loadAccount();
   const bs = $("boardScroll");
   if (bs) {
     ["wheel", "touchstart", "pointerdown"].forEach(function (evt) {
@@ -1336,4 +1354,205 @@ if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", boot);
 } else {
   boot();
+}
+
+
+// ---------------------------------------------------------- account
+
+async function loadAccount() {
+  try {
+    S.account = await api("/api/account");
+  } catch (e) {
+    S.account = null;
+  }
+  renderAccount();
+}
+
+function renderAccount() {
+  const wrap = $("acctWrap");
+  if (!wrap) return;
+  const a = S.account;
+  const anyProvider = a && a.providers && a.providers.google;
+  if (!a || (!a.signed_in && !anyProvider)) { wrap.hidden = true; return; }
+  wrap.hidden = false;
+  setText($("acctBtn"), a.signed_in
+    ? (a.user.name || "account").split(" ")[0] : "sign in");
+}
+
+function acctMenuItems() {
+  const a = S.account;
+  const menu = $("acctMenu");
+  clear(menu);
+  if (!a.signed_in) {
+    const g = el("button", null, "Sign in with Google");
+    g.addEventListener("click", function () {
+      window.location.href = "/auth/google/start";
+    });
+    menu.appendChild(g);
+    const fine = el("div", "who",
+      "Your drafts get saved to your account for post-draft review.");
+    menu.appendChild(fine);
+    return;
+  }
+  const who = el("div", "who", a.user.name + (a.user.sleeper_user
+    ? " · sleeper: " + a.user.sleeper_user : ""));
+  menu.appendChild(who);
+
+  const mine = el("button", null, "My drafts");
+  mine.addEventListener("click", loadMyDrafts);
+  menu.appendChild(mine);
+
+  const save = el("button", null, "Save my tuning to my account");
+  save.addEventListener("click", async function () {
+    try {
+      const d = await api("/api/account/tuning", {});
+      toast("saved - future drafts start from " + d.strategy, "ok");
+    } catch (e) { toast(e.message, "err"); }
+  });
+  menu.appendChild(save);
+
+  const link = el("button", null, a.user.sleeper_user
+    ? "Re-link Sleeper username" : "Link Sleeper username");
+  link.addEventListener("click", async function () {
+    const name = prompt("Your Sleeper username (identity link only - "
+      + "Sleeper has no sign-in):");
+    if (!name) return;
+    try {
+      await api("/api/account/sleeper", {username: name.trim()});
+      toast("linked " + name.trim(), "ok");
+      loadAccount();
+    } catch (e) { toast(e.message, "err"); }
+  });
+  menu.appendChild(link);
+
+  const out = el("button", null, "Sign out");
+  out.addEventListener("click", async function () {
+    try { await api("/api/logout", {}); } catch (e) { /* cookie gone anyway */ }
+    S.account = null;
+    loadAccount();
+    toast("signed out", "ok");
+  });
+  menu.appendChild(out);
+}
+
+async function loadMyDrafts() {
+  const menu = $("acctMenu");
+  try {
+    const d = await api("/api/my/drafts");
+    clear(menu);
+    menu.appendChild(el("div", "who", "Your drafts - click one to review"));
+    const list = el("div", "dlist");
+    if (!d.drafts.length) {
+      list.appendChild(el("div", "who",
+        "None yet - connect a draft while signed in."));
+    }
+    d.drafts.forEach(function (r) {
+      const b = el("button");
+      b.appendChild(el("b", null, (r.name || r.draft_id)
+        + (r.is_mock ? " (mock)" : "")));
+      b.appendChild(el("span", null, r.teams + " teams · " + r.scoring
+        + " · " + r.picks + " picks · " + r.status));
+      b.addEventListener("click", function () { openReview(r); });
+      list.appendChild(b);
+    });
+    menu.appendChild(list);
+  } catch (e) { toast(e.message, "err"); }
+}
+
+async function openReview(r) {
+  $("acctMenu").hidden = true;
+  S.reviewDraft = r.draft_id;
+  try {
+    const d = await api("/api/my/draft?draft_id="
+      + encodeURIComponent(r.draft_id));
+    const rep = d.report || {};
+    addSys("REVIEW MODE: " + (d.meta.name || r.draft_id)
+      + " - questions now go to this archived draft. Type \"done\" to leave.");
+    addBot("You followed the engine's top suggestion "
+      + (rep.took_top_rec || 0) + "/" + (rep.picks_with_recs || 0)
+      + " times. Ask anything - \"where did I lose value?\", "
+      + "\"was the round-6 pick right?\"", "review");
+  } catch (e) {
+    S.reviewDraft = null;
+    toast(e.message, "err");
+  }
+}
+
+async function sendReview(message) {
+  if (/^\s*(done|exit|quit|leave)\s*$/i.test(message)) {
+    S.reviewDraft = null;
+    addSys("left review mode");
+    return;
+  }
+  addUser(message);
+  showTyping();
+  try {
+    const d = await api("/api/my/review_chat",
+      {draft_id: S.reviewDraft, message: message});
+    hideTyping();
+    addBot(d.output || "(no answer)", "review · " + (d.engine || ""),
+           d.engine !== "builtin");
+  } catch (e) {
+    hideTyping();
+    addSys(e.message, true);
+  }
+}
+
+// ---------------------------------------------------------- platforms
+
+function wirePlatformTabs() {
+  const tabs = document.querySelectorAll(".ptabs button");
+  tabs.forEach(function (b) {
+    b.addEventListener("click", function () {
+      tabs.forEach(function (x) { x.classList.toggle("on", x === b); });
+      document.querySelectorAll("[data-pf-pane]").forEach(function (pane) {
+        pane.hidden = pane.dataset.pfPane !== b.dataset.pf;
+      });
+      if (b.dataset.pf === "yahoo") loadYahooLeagues();
+    });
+  });
+  const go = $("wYahooGo");
+  if (go) go.addEventListener("click", function () {
+    const sid = sessionId();
+    window.location.href = "/auth/yahoo/start"
+      + (sid ? "?session=" + encodeURIComponent(sid) : "");
+  });
+  const espn = $("wEspn");
+  if (espn) espn.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const body = {platform: "espn",
+                  league_id: $("weLeague").value.trim(),
+                  season: parseInt($("weSeason").value, 10) || 2026};
+    if ($("weTeam").value) body.team_id = parseInt($("weTeam").value, 10);
+    if ($("weS2").value.trim()) body.espn_s2 = $("weS2").value.trim();
+    if ($("weSwid").value.trim()) body.swid = $("weSwid").value.trim();
+    await connectWith("/api/connect", body, "connecting to ESPN…");
+  });
+}
+
+async function loadYahooLeagues() {
+  const box = $("wYahooLeagues");
+  if (!box) return;
+  clear(box);
+  try {
+    const d = await api("/api/yahoo/leagues");
+    $("wYahooGo").hidden = true;
+    (d.leagues || []).forEach(function (lg) {
+      const b = el("button");
+      b.appendChild(el("b", null, lg.name || lg.league_key));
+      b.appendChild(el("span", null, " " + lg.num_teams + " teams · draft "
+        + (lg.draft_status || "?")));
+      b.addEventListener("click", function () {
+        connectWith("/api/connect",
+          {platform: "yahoo", league_key: lg.league_key},
+          "connecting to Yahoo…");
+      });
+      box.appendChild(b);
+    });
+    if (!(d.leagues || []).length) {
+      box.appendChild(el("p", "w-fine", "No leagues found on this account."));
+    }
+  } catch (e) {
+    $("wYahooGo").hidden = false;   // not linked yet - the button is the path
+  }
 }

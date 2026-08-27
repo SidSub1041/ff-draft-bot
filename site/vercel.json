@@ -2,7 +2,7 @@
   "cleanUrls": true,
   "headers": [
     {
-      "source": "/((?!app$|app\\.js$|styles\\.css$|fonts/|api/).*)",
+      "source": "/((?!app$|app\\.js$|styles\\.css$|fonts/|api/|auth/).*)",
       "headers": [
         {
           "key": "Content-Security-Policy",
@@ -28,6 +28,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/auth/:path*",
+      "destination": "https://sids-draft-copilot.fly.dev/auth/:path*"
+    },
     {
       "source": "/app",
       "destination": "https://sids-draft-copilot.fly.dev/app"

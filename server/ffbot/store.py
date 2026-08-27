@@ -16,7 +16,11 @@ from pathlib import Path
 
 from .adp import DEFAULT_ANCHORS, blend_anchors, fit_anchors_from_picks
 
-DB_PATH = Path(__file__).resolve().parents[1] / "data" / "ffbot.db"
+_DATA = Path(__file__).resolve().parents[1] / "data"
+# In the hosted container a Fly volume is mounted at data/persist so user
+# accounts and draft archives survive redeploys; locally the flat file is fine.
+DB_PATH = (_DATA / "persist" / "ffbot.db") if (_DATA / "persist").is_dir() \
+    else (_DATA / "ffbot.db")
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS drafts (
@@ -91,7 +95,31 @@ CREATE TABLE IF NOT EXISTS player_bias (
     updated_at REAL
 );
 CREATE INDEX IF NOT EXISTS idx_adp_obs_shape ON adp_obs (superflex, pos, pos_rank);
+CREATE TABLE IF NOT EXISTS users (
+    id           TEXT PRIMARY KEY,
+    provider     TEXT,
+    provider_sub TEXT,
+    email        TEXT,
+    name         TEXT,
+    sleeper_user TEXT,
+    strategy     TEXT,
+    biases       TEXT,
+    created_at   REAL,
+    last_seen    REAL,
+    UNIQUE (provider, provider_sub)
+);
+CREATE TABLE IF NOT EXISTS auth_sessions (
+    token      TEXT PRIMARY KEY,
+    user_id    TEXT,
+    created_at REAL,
+    expires_at REAL
+);
 """
+
+# drafts gain an owner without breaking databases created before accounts.
+MIGRATIONS = (
+    "ALTER TABLE drafts ADD COLUMN owner_id TEXT",
+)
 
 
 @dataclass
@@ -113,6 +141,19 @@ class Store:
         self.db = sqlite3.connect(str(path))
         self.db.row_factory = sqlite3.Row
         self.db.executescript(SCHEMA)
+        self._migrate()
+
+    def _migrate(self) -> None:
+        """Additive schema changes for databases created before them.
+
+        Every constructor must call this - a subclass that builds its own
+        connection and skips it ships a database missing columns.
+        """
+        for mig in MIGRATIONS:
+            try:
+                self.db.execute(mig)
+            except sqlite3.OperationalError:
+                pass                      # column already there
         self.db.commit()
 
     def close(self) -> None:
@@ -134,6 +175,99 @@ class Store:
              int(state.superflex), int(state.is_dynasty), state.my_slot,
              strategy_name, state.status, int(is_mock), now, now),
         )
+        self.db.commit()
+
+    def set_draft_owner(self, draft_id: str, owner_id: str) -> None:
+        self.db.execute("UPDATE drafts SET owner_id=? WHERE draft_id=?",
+                        (owner_id, draft_id))
+        self.db.commit()
+
+    def drafts_of(self, owner_id: str, limit: int = 50) -> list[dict]:
+        rows = self.db.execute(
+            """SELECT d.*, (SELECT COUNT(*) FROM picks p
+                            WHERE p.draft_id=d.draft_id) n
+               FROM drafts d WHERE owner_id=?
+               ORDER BY updated_at DESC LIMIT ?""", (owner_id, limit)).fetchall()
+        return [dict(r) for r in rows]
+
+    def draft_archive(self, draft_id: str) -> dict:
+        """Everything recorded about one draft, for the review chat."""
+        picks = [dict(r) for r in self.db.execute(
+            "SELECT * FROM picks WHERE draft_id=? ORDER BY pick_no",
+            (draft_id,)).fetchall()]
+        choices = [dict(r) for r in self.db.execute(
+            "SELECT * FROM choices WHERE draft_id=? ORDER BY pick_no",
+            (draft_id,)).fetchall()]
+        notes = [dict(r) for r in self.db.execute(
+            "SELECT * FROM feedback WHERE draft_id=? ORDER BY created_at",
+            (draft_id,)).fetchall()]
+        meta = self.db.execute("SELECT * FROM drafts WHERE draft_id=?",
+                               (draft_id,)).fetchone()
+        return {"meta": dict(meta) if meta else {}, "picks": picks,
+                "choices": choices, "notes": notes,
+                "report": self.agreement_report(draft_id)}
+
+    # ------------------------------------------------------------- users
+
+    def upsert_user(self, provider: str, sub: str, email: str,
+                    name: str) -> dict:
+        import secrets as _secrets
+        now = time.time()
+        row = self.db.execute(
+            "SELECT * FROM users WHERE provider=? AND provider_sub=?",
+            (provider, sub)).fetchone()
+        if row:
+            self.db.execute("UPDATE users SET email=?, name=?, last_seen=? "
+                            "WHERE id=?", (email, name, now, row["id"]))
+            self.db.commit()
+            return dict(self.db.execute("SELECT * FROM users WHERE id=?",
+                                        (row["id"],)).fetchone())
+        uid = _secrets.token_urlsafe(12)
+        self.db.execute(
+            "INSERT INTO users (id,provider,provider_sub,email,name,"
+            "created_at,last_seen) VALUES (?,?,?,?,?,?,?)",
+            (uid, provider, sub, email, name, now, now))
+        self.db.commit()
+        return dict(self.db.execute("SELECT * FROM users WHERE id=?",
+                                    (uid,)).fetchone())
+
+    def user(self, uid: str) -> dict | None:
+        row = self.db.execute("SELECT * FROM users WHERE id=?",
+                              (uid,)).fetchone()
+        return dict(row) if row else None
+
+    def update_user(self, uid: str, **fields) -> None:
+        cols = {"sleeper_user", "strategy", "biases", "name"}
+        sets = {k: v for k, v in fields.items() if k in cols}
+        if not sets:
+            return
+        q = ", ".join(f"{k}=?" for k in sets)
+        self.db.execute(f"UPDATE users SET {q} WHERE id=?",
+                        (*sets.values(), uid))
+        self.db.commit()
+
+    def create_auth(self, uid: str, ttl: float = 90 * 86400) -> str:
+        import secrets as _secrets
+        tok = _secrets.token_urlsafe(24)
+        now = time.time()
+        self.db.execute("INSERT INTO auth_sessions VALUES (?,?,?,?)",
+                        (tok, uid, now, now + ttl))
+        self.db.execute("DELETE FROM auth_sessions WHERE expires_at < ?",
+                        (now,))
+        self.db.commit()
+        return tok
+
+    def auth_user(self, token: str) -> dict | None:
+        if not token:
+            return None
+        row = self.db.execute(
+            "SELECT u.* FROM auth_sessions a JOIN users u ON u.id=a.user_id "
+            "WHERE a.token=? AND a.expires_at > ?",
+            (token, time.time())).fetchone()
+        return dict(row) if row else None
+
+    def drop_auth(self, token: str) -> None:
+        self.db.execute("DELETE FROM auth_sessions WHERE token=?", (token,))
         self.db.commit()
 
     def list_drafts(self, limit: int = 25) -> list[DraftSummary]:

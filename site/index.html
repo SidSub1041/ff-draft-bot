@@ -120,6 +120,10 @@
   .say.bot{align-self:flex-start;background:var(--white);border:1px solid var(--line);
            border-bottom-left-radius:4px;color:var(--ink)}
 
+  .alt-band{background:var(--tint);padding:64px 0}
+  .alt-band .band-sub{max-width:560px;color:var(--ink-dim);margin:6px 0 30px}
+  .alt-band .band-fine{margin-top:22px;font-size:12.5px;color:var(--ink-dim)}
+
   /* ------------------------------------------------------ see it live */
   #live{background:var(--tint);padding:64px 0}
   .live-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;align-items:center}
@@ -216,7 +220,7 @@
     <div class="hosts">
       <div class="host sleeper"><span class="mark">SLEEPER</span><span class="pill live">Live</span></div>
       <div class="host yahoo"><span class="mark">YAHOO!</span><span class="pill beta">Beta</span></div>
-      <div class="host espn"><span class="mark">ESPN</span><span class="pill soon">Coming later</span></div>
+      <div class="host espn"><span class="mark">ESPN</span><span class="pill beta">Experimental</span></div>
       <div class="host nfl"><span class="mark">NFL FANTASY</span><span class="pill soon">Coming later</span></div>
     </div>
     <p class="host-note">Sleeper needs no login at all. Yahoo connects through Yahoo's own
@@ -315,6 +319,38 @@
          <a href="JOEL_LINK">Joel Smyth's 2026 Draft Guide</a>, and the engine shows its work
          on every pick. It recommends — the pick is always yours.</p>
     </div>
+  </div>
+</section>
+
+<section id="accounts" class="alt-band">
+  <div class="wrap">
+    <span class="kicker">Free account</span>
+    <h2>Your drafts, remembered</h2>
+    <p class="band-sub">Sign in with Google and every draft you run - mock or
+       real - is archived to your account for the post-mortem.</p>
+    <div class="cards">
+      <div class="card">
+        <h3>Draft archive</h3>
+        <p>Every pick, every recommendation the engine made, and every note
+           you typed mid-draft, kept per draft. Open any of them later from
+           the account menu.</p>
+      </div>
+      <div class="card">
+        <h3>Review chat</h3>
+        <p>Ask questions about a finished draft in plain English - "where did
+           I lose value?", "was the round-6 pick right?" - answered from that
+           draft's actual record, not vibes.</p>
+      </div>
+      <div class="card">
+        <h3>It learns your style</h3>
+        <p>Save your strategy and player calls to your profile and every new
+           draft starts from them. Your archived drafts sharpen the market
+           model the engine uses for your future picks.</p>
+      </div>
+    </div>
+    <p class="band-fine">No password stored here - Google handles sign-in.
+       Sleeper accounts can be linked by username (Sleeper offers no sign-in
+       of its own). Accounts are optional; everything else works without one.</p>
   </div>
 </section>
 

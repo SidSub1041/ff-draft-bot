@@ -43,7 +43,7 @@ from pathlib import Path
 from typing import Any, Callable
 from urllib.parse import parse_qs, urlparse
 
-from . import explain, llm, sleeper, yahoo
+from . import accounts, espn, explain, llm, sleeper, yahoo
 from .cli import chat
 from .engine import Engine
 from .guide import get_guide
@@ -159,6 +159,7 @@ class Req:
     body: dict = field(default_factory=dict)
     panel: "PanelServer | None" = None
     headers: Any = None
+    user: Any = None            # store row for the signed-in user, or None
 
 
 def _json(status: int, payload: Any) -> Response:
@@ -202,7 +203,7 @@ class PanelStore(Store):
         self.db = sqlite3.connect(str(path), check_same_thread=False)
         self.db.row_factory = sqlite3.Row
         self.db.executescript(SCHEMA)
-        self.db.commit()
+        self._migrate()
 
 
 # Draft sessions.  Locally there is exactly one, named "local", and nothing
@@ -515,14 +516,56 @@ def _api_state(req: Req) -> dict:
 def _api_connect(req: Req) -> dict:
     platform = str(req.body.get("platform") or "sleeper").strip().lower()
     if platform == "yahoo":
-        return _connect_yahoo(req)
+        blob = _connect_yahoo(req)
+        _finish_connect(req, blob)
+        return blob
+    if platform == "espn":
+        blob = _connect_espn(req)
+        _finish_connect(req, blob)
+        return blob
     draft = str(req.body.get("draft") or "").strip()
     if not draft:
         raise ApiError(400, "draft id or sleeper.com URL is required")
     slot = req.body.get("slot") or 0
-    return connect_draft(draft, user=str(req.body.get("user") or ""),
+    blob = connect_draft(draft, user=str(req.body.get("user") or ""),
                          slot=int(slot), strategy=str(req.body.get("strategy")
                                                       or ""))
+    _finish_connect(req, blob)
+    return blob
+
+
+def _finish_connect(req: Req, blob: dict) -> None:
+    applied = _personalize(req)
+    if applied and isinstance(blob, dict):
+        blob["personalized"] = applied
+
+
+def _connect_espn(req: Req) -> dict:
+    """Attach to an ESPN league's draft.  EXPERIMENTAL - see ffbot/espn.py."""
+    league_id = str(req.body.get("league_id") or "").strip()
+    if not league_id:
+        raise ApiError(400, "league_id is required")
+    season = int(req.body.get("season") or 2026)
+    provider = espn.EspnProvider(
+        league_id, season,
+        espn_s2=str(req.body.get("espn_s2") or ""),
+        swid=str(req.body.get("swid") or ""),
+        my_team_id=int(req.body.get("team_id") or 0) or None)
+    try:
+        state = provider.build_state()
+    except espn.EspnError as e:
+        raise ApiError(502, f"{e} (private leagues need espn_s2 and SWID "
+                            f"cookies)") from e
+    slot = req.body.get("slot")
+    if slot:
+        state.my_slot = int(slot)
+    engine = Engine(state, store=_shared_store(), players=_players())
+    with engine_lock():
+        _install(engine)
+        return {"connected": True, "state": _state_blob(engine),
+                "platform": "espn", "warning": espn.WARNING
+                + ("" if state.my_slot else " Your slot is unknown - pass "
+                   "team_id or slot.")}
 
 
 def _connect_yahoo(req: Req) -> dict:
@@ -560,11 +603,13 @@ def _connect_yahoo(req: Req) -> dict:
 
 def _api_mock(req: Req) -> dict:
     b = req.body
-    return start_offline_mock(
+    blob = start_offline_mock(
         teams=int(b.get("teams") or 12), rounds=int(b.get("rounds") or 15),
         slot=int(b.get("slot") or 5), scoring=str(b.get("scoring") or "ppr"),
         superflex=_flag(b, "superflex"), dynasty=_flag(b, "dynasty"),
         upto=int(b.get("upto") or 0), strategy=str(b.get("strategy") or ""))
+    _finish_connect(req, blob)
+    return blob
 
 
 def _api_refresh(req: Req) -> dict:
@@ -1308,6 +1353,244 @@ def _api_guide(req: Req) -> dict:
     return out
 
 
+# ---------------------------------------------------------------- accounts
+
+
+def _https(req: Req) -> bool:
+    h = req.headers or {}
+    return (h.get("X-Forwarded-Proto") == "https") if _PUBLIC else False
+
+
+def _need_user(req: Req) -> dict:
+    if not req.user:
+        raise ApiError(401, "sign in first")
+    return req.user
+
+
+def _personalize(req: Req) -> list[str]:
+    """Apply the signed-in user's saved tuning to the just-connected draft
+    and archive the draft under their account.  Caller does NOT hold the
+    session lock."""
+    if not req.user:
+        return []
+    applied: list[str] = []
+    with engine_lock():
+        e = _cur().engine
+        if e is None:
+            return []
+        _shared_store().set_draft_owner(e.state.draft_id, req.user["id"])
+        raw = req.user.get("strategy")
+        if raw:
+            try:
+                e.strategy = Strategy.from_dict(json.loads(raw))
+                applied.append(f"your saved strategy ({e.strategy.name})")
+            except (ValueError, TypeError):
+                pass
+        raw = req.user.get("biases")
+        if raw:
+            try:
+                bumps = {k: float(v) for k, v in json.loads(raw).items()}
+                e.strategy.player_bumps.update(bumps)
+                if bumps:
+                    applied.append(f"{len(bumps)} player adjustment(s)")
+            except (ValueError, TypeError):
+                pass
+        _cur().rec_cache.clear()
+    return applied
+
+
+def _archive_facts(archive: dict) -> str:
+    """A finished draft, written down for the review chat's grounding."""
+    meta = archive.get("meta") or {}
+    my_slot = meta.get("my_slot")
+    parts = [
+        f"ARCHIVED DRAFT: {meta.get('name')} - {meta.get('teams')} teams, "
+        f"{meta.get('rounds')} rounds, {meta.get('scoring')}, "
+        f"your slot {my_slot}, status {meta.get('status')}, "
+        f"strategy {meta.get('strategy')}."
+    ]
+    mine = [p for p in archive.get("picks", []) if p.get("slot") == my_slot]
+    if mine:
+        parts.append("Your picks: " + "; ".join(
+            f"R{p['round']} #{p['pick_no']} {p['pos']} {p['name']}"
+            for p in mine))
+    rep = archive.get("report") or {}
+    parts.append(
+        f"Agreement with the engine: followed the top suggestion "
+        f"{rep.get('took_top_rec', 0)}/{rep.get('picks_with_recs', 0)} "
+        f"times, a top-3 suggestion {rep.get('took_top3_rec', 0)} times.")
+    div = rep.get("divergences") or []
+    if div:
+        parts.append("Where you overruled it: " + "; ".join(
+            f"pick {d['pick']}: took {d['you_took']} over "
+            f"{d.get('bot_wanted')}" for d in div[:12]))
+    notes = archive.get("notes") or []
+    if notes:
+        parts.append("Your in-draft notes: " + "; ".join(
+            str(n.get("text"))[:120] for n in notes[-10:]))
+    allp = archive.get("picks", [])
+    if allp:
+        parts.append("Full board: " + "; ".join(
+            f"{p['pick_no']}.{p['pos']} {p['name']}" for p in allp))
+    return "\n\n".join(parts)[:9000]
+
+
+# Review-chat spend guard: the operator's key answers signed-in users, so a
+# per-user daily ceiling keeps one curious user from running up the bill.
+_REVIEW_SPEND: dict[str, tuple[str, int]] = {}
+REVIEW_LLM_DAILY_CAP = 25
+
+
+def _review_llm_ok(uid: str) -> bool:
+    if (os.environ.get("FFBOT_ACCOUNT_LLM") or "").strip() == "0":
+        return False
+    day = time.strftime("%Y-%m-%d")
+    last_day, n = _REVIEW_SPEND.get(uid, (day, 0))
+    if last_day != day:
+        n = 0
+    if n >= REVIEW_LLM_DAILY_CAP:
+        return False
+    _REVIEW_SPEND[uid] = (day, n + 1)
+    return True
+
+
+def _auth_google_start(req: Req) -> Response:
+    if not accounts.google_configured():
+        raise ApiError(404, "Google sign-in is not enabled on this server")
+    base = _request_base(req, req.headers or {})
+    url = accounts.google_auth_url(f"{base}/auth/google/callback")
+    return Response(302, b"", "text/plain", [("Location", url)])
+
+
+def _auth_google_callback(req: Req) -> Response:
+    if not accounts.google_configured():
+        raise ApiError(404, "Google sign-in is not enabled on this server")
+    if not accounts.check_state(req.query.get("state") or ""):
+        raise ApiError(400, "sign-in state expired - start again")
+    code = (req.query.get("code") or "").strip()
+    if not code:
+        raise ApiError(400, "Google returned no code")
+    base = _request_base(req, req.headers or {})
+    try:
+        ident = accounts.google_exchange(code, f"{base}/auth/google/callback")
+    except accounts.AuthError as e:
+        raise ApiError(502, str(e)) from e
+    store = _shared_store()
+    user = store.upsert_user("google", ident["sub"], ident["email"],
+                             ident["name"])
+    token = store.create_auth(user["id"])
+    heads = accounts.cookie_headers(token, secure=_https(req))
+    heads.append(("Location", "/app" if _PUBLIC else "/"))
+    return Response(302, b"", "text/plain", heads)
+
+
+def _api_logout(req: Req) -> Response:
+    tok = accounts.parse_cookie((req.headers or {}).get("Cookie"))
+    if tok:
+        _shared_store().drop_auth(tok)
+    heads = accounts.clear_cookie(secure=_https(req))
+    return Response(200, json.dumps({"ok": True}).encode(),
+                    "application/json", heads)
+
+
+def _api_account(req: Req) -> dict:
+    providers = {"google": accounts.google_configured(),
+                 "sleeper_link": True}
+    if not req.user:
+        return {"signed_in": False, "providers": providers}
+    u = req.user
+    return {"signed_in": True, "providers": providers,
+            "user": {"id": u["id"], "name": u.get("name"),
+                     "email": u.get("email"),
+                     "sleeper_user": u.get("sleeper_user"),
+                     "has_saved_strategy": bool(u.get("strategy"))}}
+
+
+def _api_account_sleeper(req: Req) -> dict:
+    """Link a Sleeper username.  An identity claim, not authentication -
+    Sleeper has no OAuth, so nothing sensitive may depend on this."""
+    user = _need_user(req)
+    username = str(req.body.get("username") or "").strip()
+    if not username:
+        raise ApiError(400, "username is required")
+    uid = sleeper.user_id(username)
+    if not uid:
+        raise ApiError(404, f"no Sleeper user named {username!r}")
+    _shared_store().update_user(user["id"], sleeper_user=username)
+    return {"linked": username}
+
+
+def _api_account_tuning(req: Req) -> dict:
+    """Save this session's strategy and player bumps to the profile, so the
+    next draft starts where this one left off."""
+    user = _need_user(req)
+    with engine_lock():
+        e = _need()
+        strategy = json.dumps(e.strategy.to_dict())
+        biases = json.dumps(e.strategy.player_bumps)
+    _shared_store().update_user(user["id"], strategy=strategy, biases=biases)
+    return {"saved": True, "strategy": json.loads(strategy).get("name")}
+
+
+def _api_my_drafts(req: Req) -> dict:
+    user = _need_user(req)
+    rows = _shared_store().drafts_of(user["id"])
+    return {"drafts": [{
+        "draft_id": r["draft_id"], "name": r.get("name"),
+        "teams": r.get("teams"), "rounds": r.get("rounds"),
+        "scoring": r.get("scoring"), "status": r.get("status"),
+        "is_mock": bool(r.get("is_mock")), "picks": r.get("n"),
+        "updated_at": r.get("updated_at"),
+    } for r in rows]}
+
+
+def _my_archive(req: Req) -> dict:
+    user = _need_user(req)
+    draft_id = str(req.query.get("draft_id")
+                   or req.body.get("draft_id") or "").strip()
+    if not draft_id:
+        raise ApiError(400, "draft_id is required")
+    archive = _shared_store().draft_archive(draft_id)
+    if (archive.get("meta") or {}).get("owner_id") != user["id"]:
+        raise ApiError(404, "no such draft in your account")
+    return archive
+
+
+def _api_my_draft(req: Req) -> dict:
+    archive = _my_archive(req)
+    return {"meta": archive["meta"], "report": archive["report"],
+            "picks": archive["picks"], "notes": [
+                {"kind": n.get("kind"), "text": n.get("text")}
+                for n in archive["notes"]]}
+
+
+def _api_my_review_chat(req: Req) -> dict:
+    """Ask questions about an archived draft.  Grounded on its record."""
+    user = _need_user(req)
+    message = str(req.body.get("message") or "").strip()
+    if not message:
+        raise ApiError(400, "message is required")
+    archive = _my_archive(req)
+    facts = _archive_facts(archive)
+    if llm.available() and _review_llm_ok(user["id"]):
+        answer = llm.deep_answer(message, facts, [])
+        if answer:
+            verdict, detail = llm.split_deep(answer)
+            out = verdict + (("\n\n" + detail) if detail else "")
+            return {"output": out, "engine": llm.backend_label()}
+    rep = archive["report"]
+    lines = [facts.split("\n\n")[0], "",
+             f"You followed the top suggestion {rep.get('took_top_rec', 0)} "
+             f"of {rep.get('picks_with_recs', 0)} times."]
+    for d in (rep.get("divergences") or [])[:6]:
+        lines.append(f"  pick {d['pick']}: you took {d['you_took']}, "
+                     f"the engine wanted {d.get('bot_wanted')}")
+    lines.append("")
+    lines.append("(The language model is unavailable or capped for today; "
+                 "this is the engine's own summary.)")
+    return {"output": "\n".join(lines), "engine": "builtin"}
+
+
 # ------------------------------------------------------------------- yahoo
 
 
@@ -1320,16 +1603,24 @@ def _request_base(req: Req, handler_headers) -> str:
 
 
 def _yahoo_session(req: Req) -> DraftSession:
-    """The session named in the OAuth state/query, outside /api dispatch."""
+    """The session named in the OAuth state/query, outside /api dispatch.
+
+    Linking Yahoo is the FIRST thing a Yahoo user does, so when no session
+    exists yet, starting the link mints one - the id rides the OAuth state
+    and comes back to the page via /app?session=.
+    """
     sid = (req.query.get("session") or req.query.get("state") or "").strip()
     if not _PUBLIC:
         return _get_or_create(LOCAL_SID)
     with _REG_LOCK:
         ses = _REGISTRY.get(sid)
-    if ses is None or sid == LOCAL_SID:
-        raise ApiError(401, "unknown session - connect first, then link Yahoo")
-    ses.last_seen = time.time()
-    return ses
+    if ses is not None and sid != LOCAL_SID:
+        ses.last_seen = time.time()
+        return ses
+    if req.path.endswith("/start"):
+        return _new_session(str((req.headers or {}).get("Fly-Client-IP")
+                                or "oauth"))
+    raise ApiError(401, "sign-in state expired - start the Yahoo link again")
 
 
 def _auth_yahoo_start(req: Req) -> Response:
@@ -1352,8 +1643,9 @@ def _auth_yahoo_callback(req: Req) -> Response:
     tokens = yahoo.exchange_code(code, f"{base}/auth/yahoo/callback")
     with ses.lock:
         ses.yahoo = tokens
-    return Response(302, b"", "text/plain",
-                    [("Location", "/app" if _PUBLIC else "/")])
+    dest = (f"/app?session={ses.sid}&yahoo=linked" if _PUBLIC
+            else "/?yahoo=linked")
+    return Response(302, b"", "text/plain", [("Location", dest)])
 
 
 def _api_yahoo_leagues(req: Req) -> dict:
@@ -1451,6 +1743,15 @@ ROUTES: dict[tuple[str, str], Callable[[Req], Any]] = {
     ("POST", "/api/chat"): _api_chat,
     ("GET", "/api/review"): _api_review,
     ("GET", "/api/guide"): _api_guide,
+    ("GET", "/auth/google/start"): _auth_google_start,
+    ("GET", "/auth/google/callback"): _auth_google_callback,
+    ("POST", "/api/logout"): _api_logout,
+    ("GET", "/api/account"): _api_account,
+    ("POST", "/api/account/sleeper"): _api_account_sleeper,
+    ("POST", "/api/account/tuning"): _api_account_tuning,
+    ("GET", "/api/my/drafts"): _api_my_drafts,
+    ("GET", "/api/my/draft"): _api_my_draft,
+    ("POST", "/api/my/review_chat"): _api_my_review_chat,
     ("GET", "/auth/yahoo/start"): _auth_yahoo_start,
     ("GET", "/auth/yahoo/callback"): _auth_yahoo_callback,
     ("GET", "/api/yahoo/leagues"): _api_yahoo_leagues,
@@ -1537,8 +1838,10 @@ class PanelHandler(BaseHTTPRequestHandler):
         ip = str(self.client_address[0])
         if method == "POST" and path in ("/api/connect", "/api/mock"):
             return _new_session(ip)
-        if path in ("/api/ping", "/api/guide"):
-            return _get_or_create(LOCAL_SID)      # stateless, no draft needed
+        if (path in ("/api/ping", "/api/guide", "/api/logout")
+                or path.startswith("/api/account")
+                or path.startswith("/api/my/")):
+            return _get_or_create(LOCAL_SID)      # cookie-authed or stateless
         sid = (self.headers.get("X-FFBot-Session")
                or query.get("session") or "").strip()
         with _REG_LOCK:
@@ -1586,8 +1889,10 @@ class PanelHandler(BaseHTTPRequestHandler):
             ses = self._resolve_session(method, path, query)
             ctx_token = _CTX.set(ses)
             try:
+                req_user = _shared_store().auth_user(
+                    accounts.parse_cookie(self.headers.get("Cookie")))
                 result = handler(Req(method, path, query, body,
-                                     self._panel(), self.headers))
+                                     self._panel(), self.headers, req_user))
                 if (_PUBLIC and isinstance(result, dict)
                         and path in ("/api/connect", "/api/mock")):
                     result["session"] = ses.sid

@@ -29,3 +29,7 @@ primary_region = "iad"
 [[vm]]
   size = "shared-cpu-1x"
   memory = "512mb"
+
+[mounts]
+  source = "ffbot_data"
+  destination = "/app/server/data/persist"

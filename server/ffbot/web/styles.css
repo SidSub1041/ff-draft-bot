@@ -675,3 +675,34 @@ table.board th, table.board td {
 .sv-bubble{fill:var(--accent)}
 #welcome h3, .w-brand b{font-family:"Poppins",var(--sans)}
 @media (max-width:760px){.w-steps{grid-template-columns:1fr}}
+
+
+/* ------------------------------------------------- account + platforms */
+
+.acct{position:relative}
+.acct-menu{position:absolute;right:0;top:calc(100% + 6px);z-index:60;
+  background:var(--bg-1);border:1px solid var(--line);border-radius:10px;
+  min-width:210px;padding:6px;box-shadow:0 12px 30px rgba(0,0,0,.45)}
+.acct-menu button{display:block;width:100%;text-align:left;background:none;
+  border:0;color:var(--fg);padding:8px 10px;border-radius:7px;
+  font:13px var(--sans);cursor:pointer}
+.acct-menu button:hover{background:var(--bg-2)}
+.acct-menu .who{padding:6px 10px 8px;color:var(--fg-dim);font-size:12px;
+  border-bottom:1px solid var(--line);margin-bottom:4px}
+.acct-menu .dlist{max-height:220px;overflow-y:auto;overscroll-behavior:contain}
+.acct-menu .dlist button b{display:block;font-weight:600}
+.acct-menu .dlist button span{color:var(--fg-mute);font-size:11.5px}
+.ptabs{display:flex;gap:6px;margin-bottom:10px}
+.ptabs button{flex:1;background:var(--bg-2);border:1px solid var(--line);
+  color:var(--fg-dim);border-radius:8px;padding:7px 4px;font:12.5px var(--sans);
+  font-weight:600;cursor:pointer}
+.ptabs button.on{background:var(--bg-3);color:var(--fg);
+  border-color:var(--accent)}
+.ptabs button i{font-style:normal;font-size:10px;color:var(--accent);
+  font-weight:500}
+.w-fine{font-size:11.5px;color:var(--fg-mute);line-height:1.5}
+#wYahooLeagues button{display:block;width:100%;text-align:left;
+  background:var(--bg-2);border:1px solid var(--line);color:var(--fg);
+  border-radius:8px;padding:9px 11px;margin-top:6px;font:13px var(--sans);
+  cursor:pointer}
+#wYahooLeagues button:hover{border-color:var(--accent)}

@@ -43,6 +43,11 @@
     <span id="engineTag" class="tag even"
           title="which brain answered the last chat">chat: builtin</span>
     <span id="updated" class="dim num">&mdash;</span>
+    <span id="acctWrap" class="acct" hidden>
+      <button id="acctBtn" class="ghost small" aria-expanded="false"
+              aria-haspopup="menu">account</button>
+      <div id="acctMenu" class="acct-menu" role="menu" hidden></div>
+    </span>
     <button id="btnMenu" class="ghost small" aria-expanded="false"
             aria-haspopup="dialog" aria-controls="menu">setup</button>
   </div>
@@ -138,8 +143,13 @@
 
       <div class="w-step">
         <div class="w-n">2</div>
-        <h3>Paste it here</h3>
-        <form id="wForm" class="w-form">
+        <h3>Connect your platform</h3>
+        <div class="ptabs" role="tablist">
+          <button type="button" class="on" data-pf="sleeper">Sleeper</button>
+          <button type="button" data-pf="yahoo">Yahoo <i>beta</i></button>
+          <button type="button" data-pf="espn">ESPN <i>exp.</i></button>
+        </div>
+        <form id="wForm" class="w-form" data-pf-pane="sleeper">
           <input id="wDraft" type="text" required autocomplete="off" spellcheck="false"
                  placeholder="https://sleeper.com/draft/nfl/&hellip;">
           <div class="w-row">
@@ -148,6 +158,25 @@
             <input id="wSlot" type="number" min="1" max="32" placeholder="or seat #">
           </div>
           <button type="submit" class="primary">Connect my draft</button>
+        </form>
+        <div id="wYahoo" class="w-form" data-pf-pane="yahoo" hidden>
+          <button type="button" id="wYahooGo" class="primary">
+            Continue with Yahoo</button>
+          <div id="wYahooLeagues"></div>
+          <p class="w-fine">Official Yahoo sign-in - we never see your
+             password. Beta: rehearse in a Yahoo mock first.</p>
+        </div>
+        <form id="wEspn" class="w-form" data-pf-pane="espn" hidden>
+          <input id="weLeague" type="text" placeholder="ESPN league ID" required>
+          <div class="w-row">
+            <input id="weSeason" type="number" value="2026" min="2020" max="2030">
+            <input id="weTeam" type="number" placeholder="team #">
+          </div>
+          <input id="weS2" type="text" placeholder="espn_s2 cookie (private leagues)">
+          <input id="weSwid" type="text" placeholder="SWID cookie, with braces">
+          <button type="submit" class="primary">Connect ESPN league</button>
+          <p class="w-fine">Experimental: uses ESPN's unofficial API and is
+             unproven in live rooms. Cookies stay in this draft session only.</p>
         </form>
         <p>Give it ~20 seconds to build the model after connecting.</p>
       </div>

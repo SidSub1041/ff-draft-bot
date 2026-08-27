@@ -10,3 +10,4 @@ server/data/raw/
 .DS_Store
 *.log
 store/ffbot-extension.zip
+design/
