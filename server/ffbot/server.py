@@ -1625,8 +1625,10 @@ def _yahoo_session(req: Req) -> DraftSession:
         ses.last_seen = time.time()
         return ses
     if req.path.endswith("/start"):
-        return _new_session(str((req.headers or {}).get("Fly-Client-IP")
-                                or "oauth"))
+        h = req.headers or {}
+        ip = ((h.get("X-Forwarded-For") or "").split(",")[0].strip()
+              or h.get("Fly-Client-IP") or "oauth")
+        return _new_session(ip)
     raise ApiError(401, "sign-in state expired - start the Yahoo link again")
 
 
@@ -1836,13 +1838,28 @@ class PanelHandler(BaseHTTPRequestHandler):
     # strangers stay private-mode only.
     PUBLIC_BLOCKED = frozenset({"/api/review"})
 
+    def _client_ip(self) -> str:
+        """The end user's address, seen through up to two proxies.
+
+        On Fly the TCP peer is fly-proxy, and through Vercel even
+        Fly-Client-IP is Vercel's edge - the user is the first hop of
+        X-Forwarded-For.  A direct client can spoof that header to dodge
+        the per-IP limit, which is tolerable; the alternative bug was one
+        shared bucket that locked ALL users out after six sessions an hour.
+        MAX_SESSIONS still caps the total either way.
+        """
+        h = self.headers
+        xff = (h.get("X-Forwarded-For") or "").split(",")[0].strip()
+        return (xff or h.get("Fly-Client-IP")
+                or str(self.client_address[0]))
+
     def _resolve_session(self, method: str, path: str,
                          query: dict) -> DraftSession:
         if not _PUBLIC or not path.startswith("/api/"):
             return _get_or_create(LOCAL_SID)
         if path in self.PUBLIC_BLOCKED:
             raise ApiError(404, "not available on the hosted service")
-        ip = str(self.client_address[0])
+        ip = self._client_ip()
         if method == "POST" and path in ("/api/connect", "/api/mock"):
             return _new_session(ip)
         if (path in ("/api/ping", "/api/guide", "/api/logout")
