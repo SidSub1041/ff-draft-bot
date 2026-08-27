@@ -288,6 +288,37 @@ function applyState(state, connected) {
   if (S.state && had && had !== S.state.draft_id) resetForNewDraft();
   renderHeader();
   paintDot();
+  syncWelcome();
+}
+
+/* First-run screen: the branded walkthrough owns the page until a draft is
+   connected, then the workspace takes over. */
+function syncWelcome() {
+  const w = $("welcome");
+  if (!w) return;
+  w.hidden = !!S.connected;
+  $("work").style.display = S.connected ? "" : "none";
+  const tabs = $("compactTabs");
+  if (tabs) tabs.style.display = S.connected ? "" : "none";
+}
+
+function wireWelcome() {
+  const form = $("wForm");
+  if (!form) return;
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const body = {draft: $("wDraft").value.trim()};
+    if (!body.draft) return;
+    const user = $("wUser").value.trim();
+    const slot = parseInt($("wSlot").value, 10);
+    if (user) body.user = user;
+    if (slot) body.slot = slot;
+    await connectWith("/api/connect", body, "connecting to your draft…");
+  });
+  $("wMock").addEventListener("click", async function () {
+    await connectWith("/api/mock", {teams: 12, slot: 5, upto: 18},
+                      "building a practice draft…");
+  });
 }
 
 function resetForNewDraft() {
@@ -1026,7 +1057,8 @@ function schedule() {
 
 function onPollError(e) {
   const msg = String(e.message || e);
-  if (!e.net && /no draft|not connected/i.test(msg)) {
+  if (!e.net && (/no draft|not connected/i.test(msg)
+                 || (e.status === 401 && !S.connected))) {
     applyState(null, false);      // healthy server, nothing to watch yet
     S.errors = 0;
     return;
@@ -1272,6 +1304,7 @@ async function boot() {
     "Jefferson”, “my roster”, “read the room”, “set qb_min_round 8”.");
   setInterval(paintUpdated, 1000);
   initCompactTabs();
+  wireWelcome();
   const bs = $("boardScroll");
   if (bs) {
     ["wheel", "touchstart", "pointerdown"].forEach(function (evt) {
@@ -1288,11 +1321,11 @@ async function boot() {
       await loadPresets();
       await refreshPanes();
     } else {
-      setMenuOpen(true);
+      syncWelcome();
     }
   } catch (e) {
     onPollError(e);
-    setMenuOpen(true);
+    applyState(null, false);
   }
   paintDot();
   paintUpdated();

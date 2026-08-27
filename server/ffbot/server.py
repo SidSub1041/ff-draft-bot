@@ -114,6 +114,9 @@ STATIC: dict[str, tuple[str, str]] = {
     "/": ("index.html", "text/html; charset=utf-8"),
     "/app.js": ("app.js", "text/javascript; charset=utf-8"),
     "/styles.css": ("styles.css", "text/css; charset=utf-8"),
+    "/fonts/poppins-400.woff2": ("fonts/poppins-400.woff2", "font/woff2"),
+    "/fonts/poppins-600.woff2": ("fonts/poppins-600.woff2", "font/woff2"),
+    "/fonts/poppins-700.woff2": ("fonts/poppins-700.woff2", "font/woff2"),
 }
 
 PLACEHOLDER = """<!doctype html>
@@ -1424,6 +1427,9 @@ ROUTES: dict[tuple[str, str], Callable[[Req], Any]] = {
     ("GET", "/terms"): _site_page,
     ("GET", "/app.js"): _asset,
     ("GET", "/styles.css"): _asset,
+    ("GET", "/fonts/poppins-400.woff2"): _asset,
+    ("GET", "/fonts/poppins-600.woff2"): _asset,
+    ("GET", "/fonts/poppins-700.woff2"): _asset,
     ("GET", "/api/ping"): _api_ping,
     ("GET", "/api/state"): _api_state,
     ("POST", "/api/connect"): _api_connect,

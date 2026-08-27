@@ -114,6 +114,79 @@
   </form>
 </div>
 
+<section id="welcome" hidden aria-label="get started">
+  <div class="w-inner">
+    <div class="w-brand">
+      <span class="w-dot">SD</span>
+      <div><b>Sid's Draft Copilot</b>
+        <span>live draft assistant &middot; advisory only, it never picks</span></div>
+    </div>
+
+    <div class="w-steps">
+      <div class="w-step">
+        <div class="w-n">1</div>
+        <h3>Copy your draft room's URL</h3>
+        <svg viewBox="0 0 260 44" role="img" aria-label="A browser address bar showing a sleeper.com draft link">
+          <rect x="1" y="4" width="258" height="36" rx="9" class="sv-bar"/>
+          <circle cx="18" cy="22" r="4" class="sv-dot r"/><circle cx="32" cy="22" r="4" class="sv-dot y"/><circle cx="46" cy="22" r="4" class="sv-dot g"/>
+          <rect x="60" y="11" width="188" height="22" rx="6" class="sv-url"/>
+          <text x="68" y="26" class="sv-text">sleeper.com/draft/nfl/12345&hellip;</text>
+        </svg>
+        <p>Open your Sleeper draft (mock rooms count) and copy the address.
+           Yahoo works too, in beta.</p>
+      </div>
+
+      <div class="w-step">
+        <div class="w-n">2</div>
+        <h3>Paste it here</h3>
+        <form id="wForm" class="w-form">
+          <input id="wDraft" type="text" required autocomplete="off" spellcheck="false"
+                 placeholder="https://sleeper.com/draft/nfl/&hellip;">
+          <div class="w-row">
+            <input id="wUser" type="text" autocomplete="off" spellcheck="false"
+                   placeholder="Sleeper username (finds your seat)">
+            <input id="wSlot" type="number" min="1" max="32" placeholder="or seat #">
+          </div>
+          <button type="submit" class="primary">Connect my draft</button>
+        </form>
+        <p>Give it ~20 seconds to build the model after connecting.</p>
+      </div>
+
+      <div class="w-step">
+        <div class="w-n">3</div>
+        <h3>Draft with the copilot</h3>
+        <svg viewBox="0 0 260 96" role="img" aria-label="A preview of the copilot: draft board beside ranked options and chat">
+          <rect x="1" y="1" width="118" height="94" rx="8" class="sv-pane"/>
+          <g class="sv-cells">
+            <rect x="9" y="10" width="24" height="14" rx="3" class="c-rb"/><rect x="37" y="10" width="24" height="14" rx="3" class="c-wr"/><rect x="65" y="10" width="24" height="14" rx="3" class="c-qb"/><rect x="93" y="10" width="18" height="14" rx="3" class="c-te"/>
+            <rect x="9" y="30" width="24" height="14" rx="3" class="c-wr"/><rect x="37" y="30" width="24" height="14" rx="3" class="c-rb"/><rect x="65" y="30" width="24" height="14" rx="3" class="c-rb"/><rect x="93" y="30" width="18" height="14" rx="3" class="c-wr"/>
+            <rect x="9" y="50" width="24" height="14" rx="3" class="c-te"/><rect x="37" y="50" width="24" height="14" rx="3" class="c-wr"/><rect x="65" y="50" width="24" height="14" rx="3" class="sv-empty"/><rect x="93" y="50" width="18" height="14" rx="3" class="sv-empty"/>
+            <rect x="9" y="70" width="24" height="14" rx="3" class="sv-empty"/><rect x="37" y="70" width="24" height="14" rx="3" class="sv-empty"/><rect x="65" y="70" width="24" height="14" rx="3" class="sv-empty"/><rect x="93" y="70" width="18" height="14" rx="3" class="sv-empty"/>
+          </g>
+          <rect x="127" y="1" width="132" height="58" rx="8" class="sv-pane"/>
+          <rect x="135" y="10" width="80" height="8" rx="3" class="sv-line-strong"/>
+          <rect x="219" y="10" width="32" height="8" rx="3" class="c-good"/>
+          <rect x="135" y="24" width="96" height="7" rx="3" class="sv-line"/>
+          <rect x="135" y="36" width="88" height="7" rx="3" class="sv-line"/>
+          <rect x="135" y="48" width="70" height="7" rx="3" class="sv-line"/>
+          <rect x="127" y="65" width="132" height="30" rx="8" class="sv-pane"/>
+          <rect x="135" y="73" width="104" height="14" rx="7" class="sv-bubble"/>
+          <text x="141" y="83" class="sv-text sm">who should I take?</text>
+        </svg>
+        <p>Board mirrors every pick. Ask the chat anything - short verdicts,
+           "more" for depth.</p>
+      </div>
+    </div>
+
+    <div class="w-alt">
+      <span>No draft right now?</span>
+      <button id="wMock" type="button" class="ghost">Try an instant mock draft</button>
+      <span class="w-pills"><i class="live">Sleeper &middot; live</i>
+        <i class="beta">Yahoo &middot; beta</i></span>
+    </div>
+  </div>
+</section>
+
 <nav id="compactTabs" class="compact-tabs" hidden aria-label="panel views">
   <button type="button" data-cview="options" class="on">Options</button>
   <button type="button" data-cview="board">Board</button>

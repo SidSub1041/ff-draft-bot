@@ -3,7 +3,7 @@
   "outputDirectory": "site",
   "headers": [
     {
-      "source": "/((?!app$|api/).*)",
+      "source": "/((?!app$|app\\.js$|styles\\.css$|fonts/|api/).*)",
       "headers": [
         {
           "key": "Content-Security-Policy",
@@ -32,6 +32,18 @@
     {
       "source": "/app",
       "destination": "https://sids-draft-copilot.fly.dev/app"
+    },
+    {
+      "source": "/app.js",
+      "destination": "https://sids-draft-copilot.fly.dev/app.js"
+    },
+    {
+      "source": "/styles.css",
+      "destination": "https://sids-draft-copilot.fly.dev/styles.css"
+    },
+    {
+      "source": "/fonts/:file",
+      "destination": "https://sids-draft-copilot.fly.dev/fonts/:file"
     },
     {
       "source": "/api/:path*",
