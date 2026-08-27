@@ -60,7 +60,7 @@ Set secrets through the platform's secret store, never in the repo:
    fly secrets set YAHOO_CLIENT_ID=... YAHOO_CLIENT_SECRET=...
    ```
 
-6. Custom domain: `fly certs add YOUR_DOMAIN`, then create the DNS records it
+6. Custom domain: `fly certs add sidsffcopilot.com`, then create the DNS records it
    tells you to (see DNS below). HTTPS is enforced by `force_https` in
    `fly.toml`; the health check polls `GET /api/ping`.
 
@@ -75,17 +75,17 @@ Set secrets through the platform's secret store, never in the repo:
 4. Do not downgrade to the free plan for real use: free instances spin down
    on idle, which kills in-progress draft sessions and adds cold-start
    latency exactly when a draft clock is running.
-5. Custom domain: service > Settings > Custom Domains > add `YOUR_DOMAIN`,
+5. Custom domain: service > Settings > Custom Domains > add `sidsffcopilot.com`,
    then create the CNAME it shows you. Render provisions TLS automatically.
 
 ---
 
 ## DNS
 
-- Apex domain (`YOUR_DOMAIN`): use the A/AAAA records Fly prints from
+- Apex domain (`sidsffcopilot.com`): use the A/AAAA records Fly prints from
   `fly certs add`, or Render's apex instructions (ALIAS/ANAME or their
   fallback A record, depending on your DNS host).
-- Subdomain (`app.YOUR_DOMAIN`): a CNAME to the platform hostname
+- Subdomain (`app.sidsffcopilot.com`): a CNAME to the platform hostname
   (`<app>.fly.dev` or `<service>.onrender.com`).
 - Wait for certificate issuance to show verified before announcing the URL.
 
@@ -94,10 +94,10 @@ Set secrets through the platform's secret store, never in the repo:
 The extension ships pointed at a placeholder backend. After the service is
 live:
 
-1. Set the extension's API base URL to `https://YOUR_DOMAIN` (no trailing
+1. Set the extension's API base URL to `https://sidsffcopilot.com` (no trailing
    slash) in the extension config.
 2. Make sure the host permission in `manifest.json` covers
-   `https://YOUR_DOMAIN/*`.
+   `https://sidsffcopilot.com/*`.
 3. Repackage and upload to the Chrome Web Store listing (`EXTENSION_ID`);
    existing installs pick up the change on the next extension update, not
    instantly - expect the rollout to take hours to days.
@@ -108,8 +108,8 @@ live:
 
 Run all of these before telling anyone the service is up:
 
-- [ ] `curl -fsS https://YOUR_DOMAIN/api/ping` returns 200.
-- [ ] `curl -fsS -o /dev/null -w '%{redirect_url}\n' http://YOUR_DOMAIN/api/ping`
+- [ ] `curl -fsS https://sidsffcopilot.com/api/ping` returns 200.
+- [ ] `curl -fsS -o /dev/null -w '%{redirect_url}\n' http://sidsffcopilot.com/api/ping`
       redirects to https.
 - [ ] Connect a Sleeper **mock draft** end to end: create a mock on Sleeper,
       connect the panel, confirm picks mirror within a few seconds and

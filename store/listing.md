@@ -1,7 +1,7 @@
 # Chrome Web Store listing — Draft Copilot
 
 Working name: **Draft Copilot** (internal: ffbot). Everything below is copy-paste
-ready for the CWS developer dashboard. Placeholders (`YOUR_DOMAIN`, `JOEL_LINK`,
+ready for the CWS developer dashboard. Placeholders (`sidsffcopilot.com`, `JOEL_LINK`,
 `CONTACT_EMAIL`, `EXTENSION_ID`) must be replaced before submission.
 
 > Note: the Chrome Web Store takes the item name and short description from
@@ -67,7 +67,7 @@ affiliated with and does not endorse Draft Copilot.
 
 No accounts, no email address, no ads, no analytics, no trackers. Sessions
 are anonymous and auto-delete after a period of inactivity. Full policy:
-https://YOUR_DOMAIN/privacy
+https://sidsffcopilot.com/privacy
 
 Not affiliated with Sleeper, Yahoo, ESPN, or the NFL.
 
@@ -87,8 +87,8 @@ automate any page content.
 state, chosen options) locally via `chrome.storage` so the sidebar comes back
 the way they left it. Nothing else is stored; nothing is synced to us.
 
-**Host access: `https://YOUR_DOMAIN/*`** — The sidebar is an iframe of the
-Draft Copilot web app hosted at YOUR_DOMAIN. Host access is required to load
+**Host access: `https://sidsffcopilot.com/*`** — The sidebar is an iframe of the
+Draft Copilot web app hosted at sidsffcopilot.com. Host access is required to load
 and communicate with that app (the extension's own UI). No data is read from
 any other site.
 
@@ -103,7 +103,7 @@ the page.
 
 ## Data usage disclosures (dashboard privacy tab)
 
-These must match the privacy policy at https://YOUR_DOMAIN/privacy
+These must match the privacy policy at https://sidsffcopilot.com/privacy
 (site/privacy.html in the repo).
 
 Collection checklist — check **none** of the categories. The extension
@@ -122,7 +122,7 @@ itself collects no user data:
 
 Settings live in `chrome.storage.local` on the user's machine and are not
 transmitted to us as telemetry. The embedded web app is an ordinary visit to
-YOUR_DOMAIN and is governed by the privacy policy: anonymous sessions, no
+sidsffcopilot.com and is governed by the privacy policy: anonymous sessions, no
 accounts, chat messages and connected-draft data only, auto-deleted after
 inactivity.
 
@@ -132,7 +132,7 @@ Certifications (check all three):
   purposes unrelated to the item's single purpose.
 - Data is not used or transferred to determine creditworthiness or for
   lending purposes.
-- Privacy policy URL: `https://YOUR_DOMAIN/privacy`
+- Privacy policy URL: `https://sidsffcopilot.com/privacy`
 
 ## Screenshots — shot list (5, capture at 1280x800)
 
