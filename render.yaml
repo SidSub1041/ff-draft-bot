@@ -1,0 +1,30 @@
+# Render blueprint for Draft Copilot (ffbot).
+# Deploy: push this repo, then "New > Blueprint" in the Render dashboard.
+#
+# Plan note: the free plan spins down on idle, which drops live draft
+# sessions (the SQLite db is in-instance and ephemeral). Starter is the
+# honest minimum for anything resembling production.
+
+services:
+  - type: web
+    name: ffbot
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/ping
+    numInstances: 1
+    envVars:
+      - key: FFBOT_PUBLIC
+        value: "1"
+      # Optional - leave unset to keep public chat's LLM features OFF
+      # (the default). Set it in the dashboard only if you accept the cost.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # Optional - only needed for the Yahoo Fantasy beta (official OAuth).
+      - key: YAHOO_CLIENT_ID
+        sync: false
+      - key: YAHOO_CLIENT_SECRET
+        sync: false
+      # Optional - session lifetime in seconds; leave unset for the default.
+      - key: FFBOT_SESSION_TTL
+        sync: false

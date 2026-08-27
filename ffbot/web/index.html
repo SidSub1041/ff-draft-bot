@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>ff-draft-bot</title>
+<!-- Inline data URI: the panel must work with no network at all. -->
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/styles.css">
+<script>
+  // The server hands the page its API token. It either replaces the
+  // placeholder below or injects its own assignment; take whichever real
+  // value lands, and never let the untouched placeholder win.
+  (function () {
+    var t = "__FFBOT_TOKEN__";
+    if (!window.FFBOT_TOKEN && t.slice(0, 7) !== "__FFBOT") {
+      window.FFBOT_TOKEN = t;
+    }
+  })();
+</script>
+<script defer src="/app.js"></script>
+</head>
+<body>
+
+<header id="hdr">
+  <div class="hdr-id">
+    <span id="dot" class="dot red" title="disconnected"></span>
+    <h1 id="draftName">not connected</h1>
+    <span id="badges" class="badges"></span>
+  </div>
+
+  <div class="hdr-clock">
+    <span id="clockMain" class="num">&mdash;</span>
+    <span id="clockSlot" class="dim">no slot</span>
+  </div>
+
+  <div id="turn" class="turn idle">
+    <span id="turnText" role="status" aria-live="polite">no draft connected</span>
+  </div>
+
+  <div class="hdr-actions">
+    <span id="engineTag" class="tag even"
+          title="which brain answered the last chat">chat: builtin</span>
+    <span id="updated" class="dim num">&mdash;</span>
+    <button id="btnMenu" class="ghost small" aria-expanded="false"
+            aria-haspopup="dialog" aria-controls="menu">setup</button>
+  </div>
+</header>
+
+<!-- Everything that used to be a tab bar lives here: connect, mock, preset,
+     note. Roster / room / strategy / review are questions you ask the bot. -->
+<div id="menu" class="menu" role="dialog" aria-label="setup" hidden>
+  <form id="connectForm" class="mform">
+    <h3>Connect a Sleeper draft</h3>
+    <input id="cDraft" type="text" autocomplete="off" spellcheck="false"
+           placeholder="sleeper.com/draft/nfl/… or a draft id">
+    <div class="mrow">
+      <input id="cUser" type="text" autocomplete="off" spellcheck="false"
+             placeholder="sleeper username">
+      <input id="cSlot" type="number" min="1" max="32" step="1"
+             placeholder="slot" class="narrow">
+      <button type="submit" class="primary small">connect</button>
+    </div>
+    <p class="hint">Read-only. The bot advises; it never submits a pick.</p>
+  </form>
+
+  <form id="mockForm" class="mform">
+    <h3>Offline mock</h3>
+    <div class="mrow">
+      <label class="fld"><span>teams</span>
+        <input id="mTeams" type="number" min="4" max="32" step="1" value="12">
+      </label>
+      <label class="fld"><span>rounds</span>
+        <input id="mRounds" type="number" min="1" max="30" step="1" value="15">
+      </label>
+      <label class="fld"><span>slot</span>
+        <input id="mSlot" type="number" min="1" max="32" step="1" value="5">
+      </label>
+      <label class="fld"><span>sim to</span>
+        <input id="mUpto" type="number" min="0" max="600" step="1" value="0">
+      </label>
+    </div>
+    <div class="mrow">
+      <label class="fld grow"><span>scoring</span>
+        <select id="mScoring">
+          <option value="ppr">PPR</option>
+          <option value="half_ppr">Half PPR</option>
+          <option value="std">Standard</option>
+        </select>
+      </label>
+      <label class="check"><input id="mSuperflex" type="checkbox"> superflex</label>
+      <label class="check"><input id="mDynasty" type="checkbox"> dynasty</label>
+      <button type="submit" class="primary small">start</button>
+    </div>
+  </form>
+
+  <div class="mform">
+    <h3>Strategy preset</h3>
+    <div class="mrow">
+      <select id="presetSel" aria-label="strategy preset"></select>
+      <button id="presetApply" type="button" class="small">apply</button>
+    </div>
+    <p class="hint">Finer tuning is chat: “set rb_target_count 2”, “strategy”.</p>
+  </div>
+
+  <form id="noteForm" class="mform">
+    <h3>Note for post-draft review</h3>
+    <div class="mrow">
+      <input id="noteText" type="text" autocomplete="off"
+             placeholder="log a concern while it is fresh">
+      <button type="submit" class="small">save</button>
+    </div>
+  </form>
+</div>
+
+<nav id="compactTabs" class="compact-tabs" hidden aria-label="panel views">
+  <button type="button" data-cview="options" class="on">Options</button>
+  <button type="button" data-cview="board">Board</button>
+  <button type="button" data-cview="chat">Chat</button>
+</nav>
+
+<main id="work" data-cview="options">
+
+  <!-- ------------------------------------------------------ left: board -->
+  <section id="boardPane" class="pane" aria-labelledby="boardTitle">
+    <div class="pane-head">
+      <h2 id="boardTitle">Draft board</h2>
+      <div id="legend" class="legend"></div>
+      <button id="btnNow" class="ghost small" hidden>jump to now</button>
+    </div>
+
+    <div id="boardScroll" class="board-scroll" tabindex="0" role="region"
+         aria-label="draft board grid, scrolls sideways">
+      <table id="boardTable" class="board" hidden>
+        <caption class="sr-only">Rounds down, draft slots across.</caption>
+        <thead id="boardHead"></thead>
+        <tbody id="boardBody"></tbody>
+      </table>
+      <p id="boardEmpty" class="empty">No draft connected &mdash; open
+        <b>setup</b>, or ask the bot for help in the chat below.</p>
+    </div>
+
+    <!-- The phone-width stand-in for the grid. -->
+    <ol id="recentList" class="recent" aria-label="recent picks"></ol>
+  </section>
+
+  <!-- ------------------------------------------- right: by position + chat -->
+  <section id="sidePane" class="pane">
+
+    <section id="byposPane" aria-labelledby="byposTitle">
+      <div class="pane-head">
+        <h2 id="byposTitle">Best by position</h2>
+        <span id="byposPick" class="dim num"></span>
+      </div>
+      <p id="scriptSays" class="script">&mdash;</p>
+      <div id="byposCols" class="bypos"></div>
+    </section>
+
+    <section id="chatPane" aria-labelledby="chatTitle">
+      <div class="pane-head">
+        <h2 id="chatTitle">Chat</h2>
+        <span class="dim keyhint">/ focus &middot; ⇧⏎ newline &middot; ↑↓ history
+          &middot; ⇥ complete &middot; ⌃L clear</span>
+      </div>
+
+      <div id="chatLog" class="chat-log" role="log" aria-live="polite"
+           aria-label="conversation" tabindex="0"></div>
+
+      <div id="chatChips" class="chips" aria-label="suggested follow-ups"></div>
+
+      <form id="chatForm" class="composer">
+        <textarea id="chatInput" rows="1" autocomplete="off" spellcheck="false"
+                  aria-label="ask the bot"
+                  placeholder="ask in plain English — who should I take?"></textarea>
+        <button type="submit" class="primary small">send</button>
+      </form>
+    </section>
+
+  </section>
+</main>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+</body>
+</html>

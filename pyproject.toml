@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ff-draft-bot"
+version = "1.0.0"
+description = "Live fantasy football draft assistant built on Joel Smyth's 2026 Draft Guide and the Sleeper API"
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+plugin = ["mcp>=1.2"]
+llm = ["anthropic>=1.0"]
+dev = ["pytest>=7"]
+
+[project.scripts]
+ffbot = "ffbot.cli:main"
+ffbot-mcp = "ffbot.mcp_server:main"
+
+[tool.setuptools]
+packages = ["ffbot"]
+
+[tool.setuptools.package-data]
+ffbot = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

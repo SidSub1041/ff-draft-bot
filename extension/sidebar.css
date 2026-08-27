@@ -1,0 +1,132 @@
+/* Styles for the injected shell only.  These live inside a shadow root, so
+   nothing here can leak into Sleeper's page and nothing of Sleeper's can
+   reach in and restyle the sidebar. */
+
+:host { all: initial; }
+
+.root {
+  position: fixed;
+  inset: 0;
+  /* The shell spans the viewport so the pill can sit anywhere, but it must
+     not swallow clicks meant for Sleeper - only real controls opt back in. */
+  pointer-events: none;
+  z-index: 2147483646;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif;
+}
+
+.panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: var(--ffbot-w, 430px);
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  background: #0b1220;
+  border-left: 1px solid #22304a;
+  box-shadow: -8px 0 26px rgba(0, 0, 0, .38);
+}
+.panel[hidden] { display: none; }
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: #101a2c;
+  border-bottom: 1px solid #22304a;
+  color: #cfe0ff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  flex: none;
+}
+.bar .title { flex: 1; white-space: nowrap; overflow: hidden;
+              text-overflow: ellipsis; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #f0a92e;
+       flex: none; }
+.dot.up { background: #4cd08a; }
+.dot.down { background: #ef5f6b; }
+
+.btn {
+  appearance: none;
+  border: 1px solid #2b3a58;
+  background: #16233a;
+  color: #cfe0ff;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+.btn:hover { background: #1d2d49; }
+.btn:focus-visible { outline: 2px solid #4c8bf5; outline-offset: 1px; }
+
+.frame { flex: 1; width: 100%; border: 0; display: block; background: #0b1220; }
+.frame[hidden] { display: none; }
+
+/* Drag-to-resize strip on the panel's inner edge. */
+.grip {
+  position: absolute;
+  top: 0;
+  left: -3px;
+  width: 7px;
+  height: 100%;
+  cursor: ew-resize;
+  pointer-events: auto;
+  background: transparent;
+}
+.grip:hover, .grip.active { background: rgba(76, 139, 245, .45); }
+
+.down-msg {
+  flex: 1;
+  padding: 16px;
+  color: #cfe0ff;
+  font-size: 13px;
+  line-height: 1.55;
+  overflow: auto;
+}
+.down-msg h2 { margin: 0 0 8px; font-size: 14px; color: #ffd9a0; }
+.down-msg code {
+  display: block;
+  margin: 10px 0;
+  padding: 9px 10px;
+  background: #08101c;
+  border: 1px solid #22304a;
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  color: #9fe8c0;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.down-msg .muted { color: #8fa3c4; font-size: 12px; }
+
+.pill {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  pointer-events: auto;
+  writing-mode: vertical-rl;
+  padding: 14px 7px;
+  background: #16233a;
+  color: #cfe0ff;
+  border: 1px solid #2b3a58;
+  border-right: 0;
+  border-radius: 8px 0 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  cursor: pointer;
+  box-shadow: -4px 0 14px rgba(0, 0, 0, .3);
+}
+.pill[hidden] { display: none; }
+.pill:hover { background: #1d2d49; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .panel { transition: width .12s ease; }
+  .panel.dragging { transition: none; }
+}

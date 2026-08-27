@@ -1,0 +1,31 @@
+# Fly.io config for Draft Copilot (ffbot).
+# Replace the app name before `fly launch` / `fly deploy`.
+
+app = "ffbot-CHANGE-ME"
+primary_region = "ord"  # pick the region closest to your users
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  FFBOT_PUBLIC = "1"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # v1 runs a single machine: state is an in-process SQLite db, so more than
+  # one machine would split drafts across instances. Keep it at exactly one.
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    interval = "15s"
+    timeout = "5s"
+    grace_period = "10s"
+    method = "GET"
+    path = "/api/ping"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

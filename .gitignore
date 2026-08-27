@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+data/cache/
+data/ffbot.db
+data/strategies/*.json
+data/raw/
+.pytest_cache/
+.DS_Store
+*.log
+store/ffbot-extension.zip

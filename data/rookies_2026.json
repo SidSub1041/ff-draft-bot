@@ -1,0 +1,113 @@
+{
+  "_source": "Web consensus (Yahoo/SI/PFN/RotoBaller/Seahawks.com, Aug 2026) + Joel Smyth guide dynasty ranks and Top-50 stats. Draft capital and roles as reported online; the guide's rank stays the value anchor.",
+  "rookies": [
+    {
+      "name": "Jeremiyah Love",
+      "pos": "RB",
+      "team": "ARI",
+      "capital": "1st round, 3rd overall - highest-drafted RB since Barkley 2018",
+      "college": "Notre Dame: 6.9 YPC, 40 TD in 28 games, Heisman finalist; top-15 in yards after contact/att, breakaway rate and elusive rating two straight years; real receiver (10.9% target share)",
+      "situation": "Bad offense and a cluttered backfield (Allgeier signed, McBride/Harrison eat targets) caps the rookie-year ceiling at strong RB2, but the talent is bell-cow grade",
+      "playstyle": "explosive one-cut runner with pass-game chops - the profile guide stat #1 says goes RB1 by year 2"
+    },
+    {
+      "name": "Carnell Tate",
+      "pos": "WR",
+      "team": "TEN",
+      "capital": "1st round, 4th overall - first WR taken",
+      "college": "Ohio State: polished, pro-ready route runner",
+      "situation": "Clearest volume path of the rookie WRs: pairs with Cam Ward as the day-one primary read, alpha-role trajectory",
+      "playstyle": "high floor possession X with contested-catch craft"
+    },
+    {
+      "name": "Jordyn Tyson",
+      "pos": "WR",
+      "team": "NO",
+      "capital": "1st round top-10",
+      "college": "Arizona State: wins at every level, elite 50/50 ball skills",
+      "situation": "Kellen Moore schemes touches for his best players and his offense was 8th in pass attempts/game; Olave draws the middle-field coverage, leaving Tyson the perimeter",
+      "playstyle": "vertical/jump-ball winner in a high-pace scheme"
+    },
+    {
+      "name": "Makai Lemon",
+      "pos": "WR",
+      "team": "PHI",
+      "capital": "1st round, 20th overall (slipped; many boards had him WR1)",
+      "college": "USC: inside-outside versatile, yards-after-catch creator",
+      "situation": "Crowded target tree (Smith, Goedert, Brown, Stowers) slows the ramp; talent says trust the ceiling over the early role",
+      "playstyle": "manufactured-touch slot/perimeter hybrid - classic year-2 breakout shape"
+    },
+    {
+      "name": "Jadarian Price",
+      "pos": "RB",
+      "team": "SEA",
+      "capital": "1st round",
+      "college": "Notre Dame: explosive; PFF pass-block grade 38.5 was bottom-tier (guide stat #13 - rookie RBs always grade worst there)",
+      "situation": "Significant early role while Charbonnet rehabs; committee risk, several outlets' rookie #1 for year one; eventual RB1 promise",
+      "playstyle": "burst-and-breakaway back whose passing-down snaps must be earned"
+    },
+    {
+      "name": "KC Concepcion",
+      "pos": "WR",
+      "team": "CLE",
+      "capital": "day 2",
+      "college": "NC State: downfield playmaker",
+      "situation": "Whoever starts at QB in Cleveland looks his way on shots; volatile but real big-play equity",
+      "playstyle": "vertical separator, boom/bust weekly profile"
+    },
+    {
+      "name": "Jonah Coleman",
+      "pos": "RB",
+      "team": "DEN",
+      "capital": "4th round (but Denver's 2nd pick)",
+      "college": "Washington: compact, contact-balance runner",
+      "situation": "Opens RB3 and buried early; injury-away stash whose path likely opens in the second half",
+      "playstyle": "downhill grinder - handcuff-plus, not a week-1 play"
+    },
+    {
+      "name": "Kenyon Sadiq",
+      "pos": "TE",
+      "team": "NYJ",
+      "capital": "day 2",
+      "college": "Oregon: outlier athlete at TE",
+      "situation": "Intermediate weapon for Geno Smith but battles Mason Taylor and had offseason hernia surgery - patience required",
+      "playstyle": "move-TE athlete; dynasty-lean asset in year one"
+    },
+    {
+      "name": "De'Zhaun Stribling",
+      "pos": "WR",
+      "team": "SF",
+      "capital": "day 2",
+      "college": "Oklahoma State/Wazzu: big-bodied chain mover",
+      "situation": "Shanahan-tree offenses manufacture WR value; depth-chart path behind injury-prone starters is livelier than it looks",
+      "playstyle": "physical intermediate target"
+    },
+    {
+      "name": "Eli Stowers",
+      "pos": "TE",
+      "team": "PHI",
+      "capital": "day 2",
+      "college": "Vanderbilt: converted QB playing big-slot WR at TE",
+      "situation": "Goedert heir apparent; if the starting role opens the upside is real, until then a stash",
+      "playstyle": "big-slot receiving TE, minimal inline blocking"
+    },
+    {
+      "name": "Fernando Mendoza",
+      "pos": "QB",
+      "team": "LV",
+      "capital": "1st round",
+      "college": "Indiana: Flacco-comp pocket arm with some mobility",
+      "situation": "Sits behind Kirk Cousins; 2027 asset, not a redraft pick",
+      "playstyle": "pocket passer - the guide's 31% hit-rate archetype (stat #7), not the 63% rushing kind"
+    },
+    {
+      "name": "Denzel Boston",
+      "pos": "WR",
+      "team": "CLE",
+      "capital": "day 2",
+      "college": "Washington: red-zone frame",
+      "situation": "Second Browns rookie WR; TD-dependent early",
+      "playstyle": "end-zone target specialist"
+    }
+  ]
+}

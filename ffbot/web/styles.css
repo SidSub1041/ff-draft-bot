@@ -1,0 +1,624 @@
+/* ff-draft-bot companion panel.
+
+   A two-pane workspace sized for its own desktop window (1200-1500px): the
+   draft board on the left, best-by-position over the chat on the right.
+   Panes stack under 900px and the board degrades to a recent-picks list on a
+   phone, because the grid needs width it does not have there.
+
+   The page itself never scrolls sideways.  Only #boardScroll does. */
+
+:root {
+  color-scheme: dark;
+  --bg: #0e1116;
+  --bg-1: #161b23;
+  --bg-2: #1d232d;
+  --bg-3: #262e3a;
+  --line: #2b3440;
+  --line-2: #3a4552;
+  --fg: #e6ebf2;
+  --fg-dim: #a3aec0;
+  --fg-mute: #6f7d90;
+  --accent: #58a6ff;
+  --accent-ink: #06121f;
+  --good: #4cd08a;
+  --warn: #f0b429;
+  --bad: #ff6b6b;
+
+  /* One hue per position, used for text and for the board cell washes. */
+  --qb: #f78fb3;
+  --rb: #4cd08a;
+  --wr: #58a6ff;
+  --te: #f0b429;
+  --k: #b78bf0;
+  --def: #8b97a8;
+  --qb-wash: rgba(247, 143, 179, .16);
+  --rb-wash: rgba(76, 208, 138, .16);
+  --wr-wash: rgba(88, 166, 255, .16);
+  --te-wash: rgba(240, 180, 41, .16);
+  --k-wash: rgba(183, 139, 240, .16);
+  --def-wash: rgba(139, 151, 168, .16);
+  --mine-wash: rgba(88, 166, 255, .10);
+
+  --radius: 8px;
+  --rail-w: 40px;      /* the sticky round-number column */
+  --cell-w: 108px;     /* one draft slot */
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+          "Liberation Mono", monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --bg: #f6f7f9;
+    --bg-1: #ffffff;
+    --bg-2: #f0f2f6;
+    --bg-3: #e4e8ee;
+    --line: #d8dee6;
+    --line-2: #c2cad5;
+    --fg: #131922;
+    --fg-dim: #4a5666;
+    --fg-mute: #74808f;
+    --accent: #0a66c2;
+    --accent-ink: #ffffff;
+    --good: #16794a;
+    --warn: #9a6700;
+    --bad: #c62828;
+    --qb: #b3306a;
+    --rb: #16794a;
+    --wr: #0a66c2;
+    --te: #8a5a00;
+    --k: #6b3fbf;
+    --def: #5d6875;
+    --qb-wash: rgba(179, 48, 106, .12);
+    --rb-wash: rgba(22, 121, 74, .12);
+    --wr-wash: rgba(10, 102, 194, .12);
+    --te-wash: rgba(154, 103, 0, .14);
+    --k-wash: rgba(107, 63, 191, .12);
+    --def-wash: rgba(93, 104, 117, .14);
+    --mine-wash: rgba(10, 102, 194, .08);
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 13px/1.45 var(--sans);
+  display: grid;
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+  overflow: hidden;             /* panes scroll, the page never does */
+}
+
+.num { font-variant-numeric: tabular-nums; }
+.dim { color: var(--fg-dim); }
+.mute { color: var(--fg-mute); }
+.grow { flex: 1; min-width: 0; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+h1, h2, h3 { margin: 0; font-size: 13px; font-weight: 600; }
+h3 { font-size: 12px; color: var(--fg-dim); }
+
+button {
+  font: inherit;
+  color: inherit;
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 9px;
+  cursor: pointer;
+}
+button:hover { border-color: var(--line-2); background: var(--bg-2); }
+button:focus-visible, input:focus-visible, select:focus-visible,
+textarea:focus-visible, [tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+button.primary {
+  background: var(--accent); color: var(--accent-ink);
+  border-color: transparent; font-weight: 600;
+}
+button.primary:hover { filter: brightness(1.08); background: var(--accent); }
+button.ghost { background: transparent; }
+button.small { padding: 3px 8px; font-size: 12px; }
+button:disabled { opacity: .5; cursor: default; }
+
+input, select, textarea {
+  font: inherit;
+  color: inherit;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 7px;
+  min-width: 0;
+  width: 100%;
+}
+input.narrow { width: 5.5em; }
+
+.fld { display: flex; flex-direction: column; gap: 2px; font-size: 11px;
+       color: var(--fg-dim); min-width: 0; }
+.check { display: flex; align-items: center; gap: 5px; font-size: 12px;
+         color: var(--fg-dim); white-space: nowrap; }
+.check input { width: auto; }
+.hint { margin: 2px 0 0; font-size: 11px; color: var(--fg-mute); }
+
+/* ------------------------------------------------------------- header */
+
+#hdr {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 7px 12px;
+  background: var(--bg-1);
+  border-bottom: 1px solid var(--line);
+}
+.hdr-id { display: flex; align-items: center; gap: 8px; min-width: 0; }
+#draftName {
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  max-width: 26ch;
+}
+.badges { display: flex; gap: 4px; flex-wrap: wrap; }
+.badge {
+  font-size: 10px; padding: 1px 5px; border-radius: 4px;
+  background: var(--bg-3); color: var(--fg-dim); white-space: nowrap;
+}
+.badge.hot { color: var(--accent); }
+
+.dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.dot.red { background: var(--bad); }
+.dot.amber { background: var(--warn); }
+.dot.green { background: var(--good); }
+
+.hdr-clock { display: flex; align-items: baseline; gap: 8px; }
+.hdr-clock .num { font-family: var(--mono); font-size: 14px; font-weight: 600; }
+
+.turn {
+  padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  border: 1px solid var(--line); white-space: nowrap;
+}
+.turn.idle { color: var(--fg-dim); }
+.turn.soon { color: var(--warn); border-color: var(--warn); }
+.turn.mine {
+  color: var(--accent-ink); background: var(--accent); border-color: transparent;
+  animation: breathe 1.6s ease-in-out infinite;
+}
+@keyframes breathe { 50% { filter: brightness(1.25); } }
+
+.hdr-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.hdr-actions .num { font-size: 11px; }
+
+.tag { padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+.tag.value { color: var(--good); background: rgba(76, 208, 138, .13); }
+.tag.reach { color: var(--bad); background: rgba(255, 107, 107, .13); }
+.tag.even { color: var(--fg-mute); background: var(--bg-2); }
+
+/* --------------------------------------------------------------- menu */
+
+.menu {
+  position: absolute;
+  top: 46px; right: 10px; z-index: 40;
+  width: min(440px, calc(100vw - 20px));
+  max-height: calc(100vh - 60px);
+  overflow: auto;
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 12px;
+  background: var(--bg-1);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, .45);
+}
+.mform { display: flex; flex-direction: column; gap: 6px; }
+.mform + .mform { border-top: 1px solid var(--line); padding-top: 10px; }
+.mrow { display: flex; gap: 6px; align-items: flex-end; flex-wrap: wrap; }
+.mrow > .fld { flex: 1 1 4.5em; }
+.mrow > input:not(.narrow) { flex: 1 1 8em; }
+.mrow > select { flex: 1 1 8em; }
+
+/* ------------------------------------------------------------ the work */
+
+#work {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1px;
+  background: var(--line);
+  min-height: 0;
+}
+.pane {
+  display: flex; flex-direction: column;
+  min-width: 0; min-height: 0;
+  background: var(--bg);
+}
+.pane-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-1);
+  flex: none;
+}
+.pane-head h2 { flex: none; }
+.pane-head .keyhint { font-size: 10px; margin-left: auto; white-space: nowrap;
+                      overflow: hidden; text-overflow: ellipsis; }
+#byposPick { margin-left: auto; font-size: 11px; }
+#btnNow { margin-left: auto; }
+
+.legend { display: flex; gap: 6px; flex-wrap: wrap; margin-left: 4px; }
+.legend span { font-size: 10px; font-weight: 700; padding: 0 4px;
+               border-radius: 3px; }
+
+/* ---------------------------------------------------------- the board */
+
+.board-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 0 10px;
+}
+.empty { padding: 18px 14px; color: var(--fg-mute); max-width: 40ch; }
+
+/* border-collapse must stay `separate` or the sticky cells lose their
+   borders in Safari. */
+table.board {
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  width: calc(var(--rail-w) + var(--cols, 12) * var(--cell-w));
+}
+table.board th, table.board td {
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 0;
+  vertical-align: top;
+}
+
+/* The two frozen bits: the round rail on the left, and your own column,
+   which pins to whichever edge it would otherwise scroll past. */
+.board thead th {
+  position: sticky; top: 0; z-index: 3;
+  background: var(--bg-2);
+  font-size: 11px; font-weight: 600; color: var(--fg-dim);
+  padding: 4px 6px;
+  text-align: left;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.board th.rail {
+  position: sticky; left: 0; z-index: 2;
+  width: var(--rail-w);
+  background: var(--bg-2);
+  color: var(--fg-mute);
+  font: 600 11px/1 var(--mono);
+  text-align: center;
+  padding: 8px 2px;
+}
+.board thead th.rail { z-index: 6; }
+.board .me { position: sticky; left: var(--rail-w); right: 0; z-index: 2; }
+.board thead th.me { z-index: 5; color: var(--accent); }
+.board th.me::after, .board td.me::after {
+  content: ""; position: absolute; inset: 0;
+  border-left: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+  pointer-events: none;
+}
+
+.board td { background: var(--bg); height: 42px; }
+.board tr.round-now td { background: var(--bg-1); }
+/* Your column is sticky, so its cells have to be fully opaque or the
+   columns sliding under it show through: composite the wash over a solid
+   base rather than letting a translucent colour stand alone. */
+.board td.me { background: var(--bg-1); }
+.board td.mine {
+  background: linear-gradient(var(--mine-wash), var(--mine-wash)),
+              var(--bg-1);
+}
+
+.cell {
+  display: block; width: 100%; height: 100%;
+  border: 0; border-radius: 0; background: transparent;
+  padding: 4px 6px; text-align: left; cursor: pointer;
+  border-left: 3px solid transparent;
+}
+.cell:hover { background: var(--bg-3); }
+.cell[disabled] { cursor: default; opacity: 1; }
+.cell .cname {
+  display: block; font-size: 11.5px; font-weight: 600; line-height: 1.25;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cell .cmeta {
+  display: block; font: 10px/1.3 var(--mono); color: var(--fg-mute);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cell.QB { border-left-color: var(--qb); background: var(--qb-wash); }
+.cell.RB { border-left-color: var(--rb); background: var(--rb-wash); }
+.cell.WR { border-left-color: var(--wr); background: var(--wr-wash); }
+.cell.TE { border-left-color: var(--te); background: var(--te-wash); }
+.cell.K { border-left-color: var(--k); background: var(--k-wash); }
+.cell.DEF { border-left-color: var(--def); background: var(--def-wash); }
+.cell.QB .cname { color: var(--qb); }
+.cell.RB .cname { color: var(--rb); }
+.cell.WR .cname { color: var(--wr); }
+.cell.TE .cname { color: var(--te); }
+.cell.K .cname { color: var(--k); }
+.cell.DEF .cname { color: var(--def); }
+
+.board td.empty-cell .cell { color: var(--fg-mute); }
+.board td.empty-cell .cmeta { color: var(--line-2); }
+
+.board td.now { position: relative; }
+.board td.now .cell {
+  color: var(--accent); font-weight: 700;
+  animation: clockpulse 1.5s ease-in-out infinite;
+}
+@keyframes clockpulse {
+  0%, 100% { box-shadow: inset 0 0 0 2px var(--accent); }
+  50% { box-shadow: inset 0 0 0 2px transparent; }
+}
+
+/* Phone stand-in for the grid. */
+.recent { display: none; list-style: none; margin: 0; padding: 0;
+          overflow: auto; }
+.recent li { display: flex; align-items: baseline; gap: 8px;
+             padding: 5px 10px; border-bottom: 1px solid var(--line); }
+.recent .rp { font: 600 11px var(--mono); color: var(--fg-mute); width: 4.2em; }
+.recent .rn { flex: 1; min-width: 0; overflow: hidden;
+              text-overflow: ellipsis; white-space: nowrap; }
+.recent li.mine { background: var(--mine-wash); }
+
+/* ------------------------------------------------------- by position */
+
+#sidePane { border-left: 0; }
+#byposPane {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 48%;
+  display: flex; flex-direction: column;
+  border-bottom: 1px solid var(--line);
+}
+.script {
+  margin: 0; padding: 6px 10px;
+  font-size: 12px; color: var(--fg-dim);
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-1);
+}
+.script b { color: var(--accent); }
+
+.bypos {
+  flex: 1 1 auto; min-height: 0; overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+}
+.poscol { background: var(--bg); min-width: 0; overflow: hidden;
+          display: flex; flex-direction: column; }
+.poshead { padding: 5px 7px; border-bottom: 1px solid var(--line);
+           background: var(--bg-1); }
+.poshead .pos { font-size: 12px; font-weight: 700; }
+.poshead .outlook { display: block; font: 10px/1.35 var(--mono);
+                    color: var(--fg-mute); }
+.pos.QB { color: var(--qb); }
+.pos.RB { color: var(--rb); }
+.pos.WR { color: var(--wr); }
+.pos.TE { color: var(--te); }
+.pos.K { color: var(--k); }
+.pos.DEF { color: var(--def); }
+
+.poslist { list-style: none; margin: 0; padding: 0; }
+.poslist li { border-bottom: 1px solid var(--line); }
+.prow {
+  display: block; width: 100%; text-align: left;
+  background: transparent; border: 0; border-radius: 0;
+  border-left: 3px solid transparent;
+  padding: 4px 6px; cursor: pointer;
+}
+.prow:hover { background: var(--bg-2); }
+.prow[aria-expanded="true"] { background: var(--bg-2);
+                              border-left-color: var(--accent); }
+.prow .pname { display: block; font-size: 12px; font-weight: 600;
+               white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Four of these live side by side in half a window, so the stat line wraps
+   rather than pushing its column wider than its track. */
+.prow .pline { display: flex; gap: 4px; align-items: center;
+               flex-wrap: wrap; min-width: 0;
+               font: 10px/1.5 var(--mono); color: var(--fg-mute); }
+.prow .pline .surv { color: var(--fg-dim); }
+
+.detail { padding: 6px 8px 8px; background: var(--bg-1);
+          border-top: 1px solid var(--line); }
+.detail .stats { display: flex; flex-wrap: wrap; gap: 4px 8px;
+                 font: 10px/1.5 var(--mono); color: var(--fg-dim); }
+.detail .stats b { color: var(--fg); }
+.detail ul { list-style: none; margin: 6px 0 0; padding: 0;
+             display: flex; flex-direction: column; gap: 3px; }
+.detail li { font-size: 11px; color: var(--fg-dim); border: 0;
+             padding-left: 8px; border-left: 2px solid var(--line-2); }
+.detail .acts { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+.detail .acts button { padding: 2px 7px; font-size: 11px; }
+
+/* --------------------------------------------------------------- chat */
+
+#chatPane { flex: 1 1 auto; min-height: 0; display: flex;
+            flex-direction: column; }
+
+.chat-log {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  padding: 10px 10px 4px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.msg { max-width: 86%; display: flex; flex-direction: column; gap: 2px; }
+.msg.user { align-self: flex-end; align-items: flex-end; }
+.msg.bot, .msg.sys { align-self: flex-start; }
+.msg .who { font-size: 10px; color: var(--fg-mute); }
+.bubble {
+  padding: 6px 9px; border-radius: 10px;
+  background: var(--bg-2); border: 1px solid var(--line);
+}
+.msg.user .bubble {
+  background: var(--accent); color: var(--accent-ink);
+  border-color: transparent; border-bottom-right-radius: 3px;
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.msg.bot .bubble { border-bottom-left-radius: 3px; }
+.msg.sys .bubble { background: transparent; border-style: dashed;
+                   color: var(--fg-dim); font-size: 11.5px; }
+.msg.err .bubble { border-color: var(--bad); color: var(--bad); }
+.bubble pre {
+  margin: 0; font: 11.5px/1.5 var(--mono);
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+
+.typing { display: flex; gap: 4px; padding: 3px 2px; }
+.typing i {
+  width: 5px; height: 5px; border-radius: 50%; background: var(--fg-mute);
+  animation: blink 1.1s infinite ease-in-out;
+}
+.typing i:nth-child(2) { animation-delay: .18s; }
+.typing i:nth-child(3) { animation-delay: .36s; }
+@keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+
+.chips { display: flex; gap: 5px; flex-wrap: wrap; padding: 0 10px 6px; }
+.chips:empty { padding: 0; }
+.chip {
+  background: transparent; border: 1px solid var(--line-2);
+  border-radius: 999px; padding: 3px 10px; font-size: 11.5px;
+  color: var(--fg-dim); cursor: pointer;
+}
+.chip:hover { color: var(--fg); border-color: var(--accent); }
+
+.composer {
+  flex: none; display: flex; gap: 6px; align-items: flex-end;
+  padding: 8px 10px 10px; border-top: 1px solid var(--line);
+  background: var(--bg-1);
+}
+.composer textarea {
+  flex: 1; resize: none; max-height: 7.5em; line-height: 1.4;
+  font-family: var(--sans);
+}
+.composer button { flex: none; padding: 6px 14px; }
+
+/* -------------------------------------------------------------- toast */
+
+.toast {
+  position: fixed; left: 50%; bottom: 14px; transform: translateX(-50%);
+  z-index: 60; max-width: min(560px, calc(100vw - 24px));
+  padding: 7px 12px; border-radius: var(--radius);
+  background: var(--bg-3); border: 1px solid var(--line-2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .4);
+}
+.toast.err { border-color: var(--bad); color: var(--bad); }
+.toast.ok { border-color: var(--good); color: var(--good); }
+
+/* Scrolling stops at the pane: without this, reaching the end of the
+   options list hands the wheel event to the page - and inside the sidebar
+   iframe, to Sleeper itself - which reads as "the panel won't scroll". */
+.board-scroll, .bypos, .chat-log, .recent, .menu, #byposCols {
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/* Injury badges and deep-answer prose. */
+.tag.inj { background: rgba(239, 95, 107, .16); color: var(--bad); }
+.tag.inj.mild { background: rgba(240, 169, 46, .14); color: var(--warn); }
+.msg .prose {
+  font-family: var(--sans);
+  font-size: 13.5px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-width: 62ch;
+}
+
+/* ------------------------------------------------------- compact tabs */
+
+.compact-tabs {
+  display: none;                     /* compact widths turn this on */
+  flex: none;
+  gap: 1px;
+  background: var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.compact-tabs button {
+  flex: 1;
+  appearance: none;
+  border: 0;
+  padding: 9px 4px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--bg-2);
+  color: var(--fg-dim);
+  cursor: pointer;
+}
+.compact-tabs button.on {
+  background: var(--bg);
+  color: var(--fg);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+.compact-tabs button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+/* -------------------------------------------------------- responsive */
+
+@media (max-width: 1180px) {
+  :root { --cell-w: 96px; }
+  .pane-head .keyhint { display: none; }
+}
+
+/* Under ~900px - the docked-sidebar case - three stacked scroll regions in
+   430px of width is a scroll trap.  Switch to tabs: one full-height view at
+   a time (Options / Board / Chat), each owning the whole pane. */
+@media (max-width: 900px) {
+  .compact-tabs { display: flex; }
+  #work { display: block; min-height: 0; }
+  #boardPane, #sidePane { height: 100%; }
+
+  #work[data-cview="options"] #boardPane { display: none; }
+  #work[data-cview="options"] #chatPane { display: none; }
+  #work[data-cview="options"] #byposPane {
+    display: flex; flex-direction: column; height: 100%; min-height: 0;
+    max-height: none;               /* the desktop 48% cap squashes the lists */
+  }
+  #work[data-cview="options"] .poscol { overflow: visible; }
+  #work[data-cview="options"] #byposCols {
+    flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  }
+  #work[data-cview="options"] .bypos {
+    grid-template-columns: minmax(0, 1fr); }
+
+  #work[data-cview="board"] #sidePane { display: none; }
+  #work[data-cview="board"] .recent { display: none; }
+
+  #work[data-cview="chat"] #boardPane { display: none; }
+  #work[data-cview="chat"] #byposPane { display: none; }
+  #work[data-cview="chat"] #chatPane {
+    display: flex; flex-direction: column; height: 100%; min-height: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  #hdr { gap: 8px; padding: 6px 9px; }
+  #draftName { max-width: 14ch; }
+  .hdr-clock .num { font-size: 13px; }
+  #badges { display: none; }
+  #updated { display: none; }
+  .msg { max-width: 94%; }
+  #legend { display: none; }
+  :root { --cell-w: 84px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turn.mine, .board td.now .cell, .typing i { animation: none; }
+  .board td.now .cell { box-shadow: inset 0 0 0 2px var(--accent); }
+  * { scroll-behavior: auto !important; }
+}

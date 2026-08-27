@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — Draft Copilot</title>
+<meta name="description" content="What Draft Copilot collects, what it doesn't, and how long anything sticks around.">
+<style>
+  :root {
+    color-scheme: dark light;
+    --bg: #0e1420;
+    --bg-panel: #161e2e;
+    --ink: #e6ebf3;
+    --ink-muted: #9aa7bb;
+    --accent: #4fd08c;
+    --border: #26324a;
+    --code-bg: #1c2638;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f7f9fc;
+      --bg-panel: #ffffff;
+      --ink: #16202f;
+      --ink-muted: #5b6b84;
+      --accent: #147a4a;
+      --border: #d7dfeb;
+      --code-bg: #edf1f7;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+  }
+  header.site {
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+  }
+  header.site nav {
+    max-width: 760px;
+    margin: 0 auto;
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+  .wordmark {
+    font-weight: 700;
+    font-size: 17px;
+    color: var(--ink);
+    text-decoration: none;
+    letter-spacing: 0.01em;
+  }
+  header.site a.navlink {
+    color: var(--ink-muted);
+    text-decoration: none;
+    font-size: 14px;
+  }
+  header.site a.navlink:hover { color: var(--ink); }
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 40px 20px 72px;
+  }
+  h1 { font-size: 30px; line-height: 1.2; margin: 0 0 6px; }
+  .meta { color: var(--ink-muted); font-size: 14px; margin: 0 0 28px; }
+  h2 {
+    font-size: 20px;
+    margin: 40px 0 10px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+  }
+  h3 { font-size: 16px; margin: 22px 0 6px; }
+  p, li { color: var(--ink); }
+  p { margin: 0 0 14px; }
+  ul { margin: 0 0 14px; padding-left: 22px; }
+  li { margin-bottom: 6px; }
+  a { color: var(--accent); }
+  .tldr {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 0 0 8px;
+  }
+  .tldr h2 { border: none; margin: 0 0 8px; padding: 0; font-size: 16px; }
+  .tldr ul { margin-bottom: 0; }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.9em;
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14.5px;
+    margin: 0 0 14px;
+  }
+  th, td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th { color: var(--ink-muted); font-weight: 600; }
+  .table-wrap { overflow-x: auto; }
+  footer.site {
+    border-top: 1px solid var(--border);
+    padding: 22px 20px 34px;
+    color: var(--ink-muted);
+    font-size: 14px;
+  }
+  footer.site .inner { max-width: 760px; margin: 0 auto; }
+  footer.site a { color: var(--ink-muted); }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <nav>
+    <a class="wordmark" href="/">Draft Copilot</a>
+    <a class="navlink" href="/about">About</a>
+    <a class="navlink" href="/privacy" aria-current="page">Privacy</a>
+    <a class="navlink" href="/terms">Terms</a>
+  </nav>
+</header>
+
+<main>
+  <h1>Privacy Policy</h1>
+  <p class="meta">Effective EFFECTIVE_DATE &middot; Applies to the Draft Copilot web service at YOUR_DOMAIN and the Draft Copilot Chrome extension.</p>
+
+  <div class="tldr">
+    <h2>The short version</h2>
+    <ul>
+      <li>No accounts. No email addresses. No ads, analytics, or trackers.</li>
+      <li>We see the draft you connect (which is public data on your fantasy platform), your chat messages, and standard server logs. That's it.</li>
+      <li>Everything tied to your session is deleted automatically after SESSION_TTL_HOURS hours of inactivity.</li>
+      <li>The Chrome extension reads nothing from any web page. It only shows our app next to your draft room.</li>
+    </ul>
+  </div>
+
+  <h2 id="extension">The Chrome extension</h2>
+  <p>The extension does one job: it docks the Draft Copilot web app in a panel beside your draft room. Specifically:</p>
+  <ul>
+    <li><strong>It reads no page content, on any site.</strong> It does not scrape your draft page, your league, your messages, or anything else in your browser. The draft data the assistant shows comes from the hosted service (described below), not from the page you're on.</li>
+    <li><strong>It stores your settings locally</strong> using Chrome's <code>chrome.storage</code>, on your own machine. Those settings never leave your browser except as part of ordinary requests to the web app (for example, which strategy preset you picked).</li>
+    <li><strong>It embeds our web app in an iframe</strong> on draft pages. That iframe is an ordinary visit to YOUR_DOMAIN, no different from opening it in a tab.</li>
+    <li><strong>It contains no analytics, no trackers, and no third-party code.</strong></li>
+  </ul>
+
+  <h2 id="service">The hosted service</h2>
+  <p>When you connect a draft, here is everything the service receives:</p>
+  <div class="table-wrap">
+    <table>
+      <tr>
+        <th>What</th>
+        <th>Why</th>
+      </tr>
+      <tr>
+        <td>The draft URL or draft ID you paste in or connect</td>
+        <td>To find your draft on the fantasy platform</td>
+      </tr>
+      <tr>
+        <td>The picks of that draft, fetched from the platform's public API</td>
+        <td>To mirror the board and compute recommendations. This is the same public data anyone with the draft link can see.</td>
+      </tr>
+      <tr>
+        <td>Your chat messages to the assistant</td>
+        <td>To answer them</td>
+      </tr>
+    </table>
+  </div>
+  <p><strong>Sessions are anonymous.</strong> When you start using the app we issue a random session token so your strategy settings and chat history follow you during the draft. It is not linked to an account, an email, or your identity &mdash; we don't have accounts and we don't collect email addresses.</p>
+  <p><strong>Sessions expire.</strong> A session and everything attached to it &mdash; including its chat history &mdash; is deleted after SESSION_TTL_HOURS hours of inactivity. We do not keep chat archives.</p>
+  <p><strong>Server logs.</strong> Like nearly every web service, our servers keep short-lived request logs: IP address, request path, and response status. We use them only to spot abuse and keep the service up, and they are deleted after LOG_RETENTION_DAYS days.</p>
+
+  <h2 id="yahoo">Yahoo Fantasy (beta)</h2>
+  <p>Connecting a Yahoo draft uses Yahoo's standard OAuth flow:</p>
+  <ul>
+    <li>You sign in on Yahoo's own site. <strong>We never see your Yahoo password.</strong></li>
+    <li>Yahoo gives us a token scoped to Fantasy Sports read access. We use it only to read your draft.</li>
+    <li>You can revoke that access at any time in your Yahoo account settings, and it dies with your session like everything else.</li>
+  </ul>
+
+  <h2 id="chat">Chat and language models</h2>
+  <p>When the operator of a Draft Copilot deployment enables it, chat messages are processed by a third-party large-language-model API to generate answers. What gets sent is exactly two things:</p>
+  <ul>
+    <li>Facts about the draft (picks made, players available, your roster, your strategy settings), and</li>
+    <li>the message you typed.</li>
+  </ul>
+  <p>The assistant never asks for personal information, and none is required to use it. Don't paste anything into the chat you wouldn't want processed by such an API. If LLM processing is not enabled on a deployment, chat messages stay within the service.</p>
+
+  <h2 id="not">What we don't do</h2>
+  <ul>
+    <li>No selling or sharing of data with anyone, for any purpose.</li>
+    <li>No advertising, ad networks, or cross-site tracking.</li>
+    <li>No analytics scripts &mdash; not even the "privacy-friendly" kind.</li>
+    <li>No profiles built about you. There is nothing to build one from.</li>
+  </ul>
+
+  <h2 id="changes">Changes to this policy</h2>
+  <p>If this policy changes, the new version will be posted here with a new effective date. Since we have no way to contact you (by design), checking this page is the way to see updates.</p>
+
+  <h2 id="contact">Contact</h2>
+  <p>Questions about any of this: <a href="mailto:CONTACT_EMAIL">CONTACT_EMAIL</a>.</p>
+</main>
+
+<footer class="site">
+  <div class="inner">
+    Draft Copilot advises only &mdash; it never makes picks for you.
+    Not affiliated with Sleeper, Yahoo, ESPN, or the NFL.
+  </div>
+</footer>
+
+</body>
+</html>

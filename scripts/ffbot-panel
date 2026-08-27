@@ -1,0 +1,395 @@
+#!/usr/bin/env bash
+#
+# ffbot-panel - launch the ff-draft-bot web panel as a chromeless companion
+# window that sits next to Sleeper.
+#
+# What it does, in order:
+#   1. probes GET /api/ping to see if a panel server is already listening,
+#   2. starts `python -m ffbot.cli serve --no-open` in the background if not,
+#   3. waits for /api/ping to answer,
+#   4. opens http://127.0.0.1:PORT/ in an app-mode (no tabs, no omnibox)
+#      Chromium window sized like a sidebar, or falls back to `open`.
+#
+# Usage:
+#   scripts/ffbot-panel                       # start + open the panel
+#   scripts/ffbot-panel --connect <draft-url> --user <name>
+#   scripts/ffbot-panel --mock --teams 12 --slot 5
+#   scripts/ffbot-panel --port 8899
+#   scripts/ffbot-panel --stop                # kill the panel server
+#   scripts/ffbot-panel --tips                # macOS always-on-top options
+#
+# Any flag this script does not recognise is passed straight through to
+# `ffbot.cli serve`, so --connect / --user / --slot / --mock / --teams and
+# friends work exactly as the serve subcommand defines them.
+#
+# The bot is advisory only. The server it starts reads Sleeper and never
+# writes to it, and it binds 127.0.0.1 so nothing off this machine can reach
+# it. See extension/README.md for the in-page Sleeper sidebar alternative.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PY="${FFBOT_PYTHON:-$ROOT/.venv/bin/python}"
+
+PORT="${FFBOT_PORT:-8770}"
+WIDTH=430
+HEIGHT=980
+# Deliberately off-screen x: Chrome clamps requested bounds to the display
+# work area, so a huge value parks the window flush against the right edge
+# without us having to ask macOS how wide the desktop is. Asking is either
+# slow and permission-prompting (osascript against Finder) or wrong on
+# scaled Retina displays (system_profiler reports physical pixels, while
+# Chrome positions in points). Override with --x if the clamp misbehaves.
+POS_X=99999
+POS_Y=0
+
+BROWSER=""
+ISOLATE=0
+OPEN_WINDOW=1
+QUIET=0
+DO_STOP=0
+DO_RESTART=0
+PASSTHRU=()
+
+# Bash 3.2 (the macOS system bash) errors on "${arr[@]}" when arr is empty
+# and set -u is on, so expand arrays through this guard everywhere.
+pass_args() { printf '%s\n' ${PASSTHRU[@]+"${PASSTHRU[@]}"}; }
+
+die() { echo "ffbot-panel: $*" >&2; exit 1; }
+
+# ---------------------------------------------------------------- arguments
+
+usage() {
+  cat <<'EOF'
+ffbot-panel - open the ff-draft-bot panel as a companion window.
+
+  --port N        panel port (default 8770, or $FFBOT_PORT)
+  --width N       window width in points (default 430)
+  --height N      window height in points (default 980, Chrome clamps down)
+  --x N / --y N   window position; default x parks it at the right edge
+  --left          shorthand for --x 0
+  --browser PATH  Chromium binary to use instead of the autodetected one
+  --isolate       run the panel window in its own Chrome profile, which
+                  guarantees the size/position flags are honoured
+  --no-window     start the server only, do not open a browser
+  --restart       stop any running panel server, then start a fresh one
+  --stop          stop the panel server on this port and exit
+  --tips          print the macOS always-on-top options and exit
+  --quiet         skip the macOS tips summary after launching
+  -h, --help      this text
+
+Everything else is forwarded to `ffbot.cli serve`, for example:
+
+  scripts/ffbot-panel --connect https://sleeper.com/draft/nfl/123 --user me
+  scripts/ffbot-panel --mock --teams 12 --slot 5
+
+Forwarded flags only take effect when this script actually starts the
+server. If one is already running, use --restart to apply them.
+EOF
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --port)    PORT="${2:?--port needs a value}"; shift 2 ;;
+    --port=*)  PORT="${1#*=}"; shift ;;
+    --width)   WIDTH="${2:?--width needs a value}"; shift 2 ;;
+    --height)  HEIGHT="${2:?--height needs a value}"; shift 2 ;;
+    --x)       POS_X="${2:?--x needs a value}"; shift 2 ;;
+    --y)       POS_Y="${2:?--y needs a value}"; shift 2 ;;
+    --left)    POS_X=0; shift ;;
+    --browser) BROWSER="${2:?--browser needs a value}"; shift 2 ;;
+    --isolate) ISOLATE=1; shift ;;
+    --no-window) OPEN_WINDOW=0; shift ;;
+    --restart) DO_RESTART=1; shift ;;
+    --stop)    DO_STOP=1; shift ;;
+    --quiet)   QUIET=1; shift ;;
+    --tips)    TIPS_ONLY=1; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *)         PASSTHRU+=("$1"); shift ;;
+  esac
+done
+
+CACHE="$ROOT/data/cache"
+LOG="$CACHE/panel-$PORT.log"
+PIDFILE="$CACHE/panel-$PORT.pid"
+URL="http://127.0.0.1:$PORT/"
+
+# ------------------------------------------------------------- macOS advice
+
+tips() {
+  cat <<'EOF'
+
+Keeping the panel above Sleeper on macOS
+========================================
+Be clear on this: macOS has no built-in always-on-top for arbitrary
+windows. There is no System Settings switch, no Finder toggle, no defaults
+key. Every real answer is either "arrange the windows so they never
+overlap" or "install a third-party tool". Cheapest first:
+
+1. Side by side. No software needed, and it is what the 430pt panel width
+   is designed for. Shrink the Sleeper window so it stops short of the
+   right edge and park the panel in the gap. On a 1440pt desktop give
+   Sleeper about 1000pt and the panel the rest. Nothing overlaps, so
+   nothing needs to float.
+
+2. A second display, or an iPad over Sidecar. Panel on the secondary
+   screen, Sleeper on the main one. The only genuinely hands-off answer.
+
+3. Assign to All Desktops - partial help only. Right-click Google Chrome
+   in the Dock > Options > Assign To > All Desktops. Chrome windows then
+   follow you between Spaces and full-screen apps. It does NOT raise the
+   panel above other windows inside the same Space, so pair it with (1).
+
+4. Rectangle and Amethyst are positioning tools, not floating tools.
+   Neither sets a window level, so neither delivers real always-on-top.
+   They are just a faster way to arrange (1). Amethyst's "float" means
+   "exclude this window from tiling", not "keep it in front".
+
+5. Hammerspoon gets closest. The Accessibility API that scripting tools
+   drive cannot change a window's level either, so Hammerspoon cannot set
+   a true floating flag on a Chrome window. What it can do is re-raise the
+   panel whenever something else takes focus. It looks like always-on-top
+   in use; strictly, the panel dips behind for a frame and pops back.
+
+   Install Hammerspoon (https://www.hammerspoon.org), then paste this into
+   ~/.hammerspoon/init.lua and pick Reload Config from its menu bar icon:
+
+-- ---------------------------------------------------------------------
+-- Keep the ff-draft-bot panel in front while drafting.
+-- Not a real window level change - see the caveat above.
+
+local PANEL_PATTERN = "ff%-draft%-bot"   -- Lua pattern, matched on title
+
+-- Not matching? Run this in the Hammerspoon console to see real titles:
+--   hs.fnutils.map(hs.window.allWindows(), function(w) return w:title() end)
+local function panelWindow()
+  for _, w in ipairs(hs.window.allWindows()) do
+    if (w:title() or ""):match(PANEL_PATTERN) then return w end
+  end
+  return nil
+end
+
+ffbotFilter = hs.window.filter.new(true)   -- true = watch every window
+ffbotFilter:subscribe(hs.window.filter.windowFocused, function(focused)
+  local panel = panelWindow()
+  if panel and focused and focused:id() ~= panel:id() then
+    panel:raise()          -- to the front, without stealing focus
+  end
+end)
+
+-- cmd-alt-ctrl-P snaps the panel to the right edge of the current screen.
+hs.hotkey.bind({"cmd", "alt", "ctrl"}, "P", function()
+  local panel = panelWindow()
+  if not panel then
+    hs.alert.show("ff-draft-bot panel window not found")
+    return
+  end
+  local f = hs.screen.mainScreen():frame()
+  panel:setFrame({x = f.x + f.w - 440, y = f.y, w = 430, h = f.h})
+  panel:raise()
+end)
+-- ---------------------------------------------------------------------
+
+6. Or skip floating entirely: extension/ has a Manifest V3 Chrome
+   extension that injects this same panel as a sidebar inside the Sleeper
+   page itself, so there is only one window to manage. It is a viewer
+   only - it never reads or drives the Sleeper page.
+
+EOF
+}
+
+short_tips() {
+  cat <<EOF
+
+Panel is open. macOS cannot pin a window on top by itself, so either:
+  - shrink Sleeper to leave a ${WIDTH}pt gap on the right and park the panel
+    there (no software, works now), or
+  - put the panel on a second display / Sidecar iPad, or
+  - use Hammerspoon to re-raise it on focus changes.
+Run '$0 --tips' for the full rundown and a copy-paste Hammerspoon config,
+or see extension/README.md for an in-page Sleeper sidebar instead.
+EOF
+}
+
+if [ -n "${TIPS_ONLY:-}" ]; then tips; exit 0; fi
+
+# ------------------------------------------------------------ server probes
+
+# GET a URL and echo the body. Prefers curl, falls back to the venv python
+# so the launcher still works on a box with no curl.
+http_get() {
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsS --max-time 6 "$1" 2>/dev/null
+  elif [ -x "$PY" ]; then
+    "$PY" - "$1" <<'PYEOF' 2>/dev/null
+import sys, urllib.request
+try:
+    with urllib.request.urlopen(sys.argv[1], timeout=6) as r:
+        sys.stdout.write(r.read().decode("utf-8", "replace"))
+except Exception:
+    sys.exit(1)
+PYEOF
+  else
+    return 1
+  fi
+}
+
+# True only when the thing on this port identifies itself as ff-draft-bot.
+# /api/ping is the one unauthenticated endpoint, and checking the name keeps
+# us from adopting - or worse, killing - some unrelated service on the port.
+ping_ok() {
+  local body
+  body="$(http_get "http://127.0.0.1:$PORT/api/ping")" || return 1
+  case "$body" in *ff-draft-bot*) return 0 ;; *) return 1 ;; esac
+}
+
+listener_pids() {
+  if [ -f "$PIDFILE" ]; then
+    local p
+    p="$(cat "$PIDFILE" 2>/dev/null || true)"
+    if [ -n "$p" ] && kill -0 "$p" 2>/dev/null; then echo "$p"; return 0; fi
+  fi
+  command -v lsof >/dev/null 2>&1 || return 1
+  lsof -ti "tcp:$PORT" -sTCP:LISTEN 2>/dev/null || return 1
+}
+
+stop_server() {
+  if ! ping_ok; then
+    echo "No ff-draft-bot panel server answering on port $PORT."
+    rm -f "$PIDFILE"
+    return 0
+  fi
+  local pids
+  pids="$(listener_pids || true)"
+  if [ -z "$pids" ]; then
+    die "something is serving port $PORT but its pid could not be found"
+  fi
+  echo "Stopping panel server on port $PORT (pid $pids)."
+  kill $pids 2>/dev/null || true
+  local i=0
+  while [ $i -lt 20 ]; do
+    ping_ok || break
+    sleep 0.25
+    i=$((i + 1))
+  done
+  if ping_ok; then
+    echo "Still up after SIGTERM, sending SIGKILL."
+    kill -9 $pids 2>/dev/null || true
+    sleep 0.5
+  fi
+  rm -f "$PIDFILE"
+  ping_ok && die "could not stop the server on port $PORT"
+  echo "Stopped."
+}
+
+if [ "$DO_STOP" -eq 1 ]; then stop_server; exit 0; fi
+if [ "$DO_RESTART" -eq 1 ]; then stop_server; fi
+
+# --------------------------------------------------------------- the server
+
+if ping_ok; then
+  echo "Panel server already running on port $PORT, reusing it."
+  if [ "${#PASSTHRU[@]}" -gt 0 ] 2>/dev/null; then
+    echo "Note: $(pass_args | tr '\n' ' ')is ignored while a server is" \
+         "already up. Re-run with --restart to apply it." >&2
+  fi
+else
+  [ -x "$PY" ] || die "no python at $PY (set FFBOT_PYTHON to override)"
+  mkdir -p "$CACHE"
+  # The Anthropic key lives in the macOS Keychain (service ffbot-anthropic),
+  # never in a dotfile.  An exported ANTHROPIC_API_KEY still wins, and a
+  # missing entry just means the chat runs on the built-in parser.
+  if [ -z "${ANTHROPIC_API_KEY:-}" ] && command -v security >/dev/null 2>&1; then
+    _ffbot_key="$(security find-generic-password -s ffbot-anthropic -w 2>/dev/null || true)"
+    if [ -n "$_ffbot_key" ]; then
+      export ANTHROPIC_API_KEY="$_ffbot_key"
+      echo "Anthropic key loaded from Keychain (ffbot-anthropic)."
+    fi
+    unset _ffbot_key
+  fi
+  echo "Starting panel server on 127.0.0.1:$PORT ..."
+  cd "$ROOT"
+  nohup "$PY" -m ffbot.cli serve --no-open --port "$PORT" \
+    ${PASSTHRU[@]+"${PASSTHRU[@]}"} >>"$LOG" 2>&1 &
+  echo $! > "$PIDFILE"
+
+  # --connect parses the 5MB player file and refits the value curves on the
+  # main thread, which starves the serving thread of the GIL. The socket is
+  # up the whole time, but probes time out, so wait generously and say so.
+  i=0
+  while [ $i -lt 120 ]; do         # 120 * 0.5s = 60s
+    ping_ok && break
+    if [ $((i % 20)) -eq 19 ]; then
+      echo "  still building the model ($(( (i + 1) / 2 ))s) ..."
+    fi
+    sleep 0.5
+    i=$((i + 1))
+  done
+
+  if ! ping_ok; then
+    rm -f "$PIDFILE"
+    echo "ffbot-panel: server did not answer /api/ping within 60s." >&2
+    echo "Last lines of $LOG:" >&2
+    tail -n 30 "$LOG" >&2 2>/dev/null || true
+    exit 1
+  fi
+  echo "Server up at $URL"
+fi
+
+if [ "$OPEN_WINDOW" -eq 0 ]; then
+  echo "Not opening a window (--no-window). Panel is at $URL"
+  exit 0
+fi
+
+# -------------------------------------------------------------- the browser
+
+# App mode (--app=) is what makes this feel like a companion panel rather
+# than a tab: no omnibox, no tab strip, no bookmarks bar. Only Chromium
+# browsers have it, hence the fallback to `open` further down.
+find_browser() {
+  local c
+  for c in \
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+    "$HOME/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+    "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" \
+    "$HOME/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" \
+    "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge" \
+    "$HOME/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge" \
+    "/Applications/Chromium.app/Contents/MacOS/Chromium" \
+    "/Applications/Vivaldi.app/Contents/MacOS/Vivaldi"
+  do
+    [ -x "$c" ] && { echo "$c"; return 0; }
+  done
+  for c in google-chrome google-chrome-stable chromium chromium-browser \
+           brave-browser microsoft-edge; do
+    if command -v "$c" >/dev/null 2>&1; then command -v "$c"; return 0; fi
+  done
+  return 1
+}
+
+[ -n "$BROWSER" ] || BROWSER="$(find_browser || true)"
+
+if [ -n "$BROWSER" ]; then
+  ARGS=(--app="$URL"
+        --window-size="$WIDTH,$HEIGHT"
+        --window-position="$POS_X,$POS_Y")
+  # A second Chrome launch normally hands its flags to the already-running
+  # process, which may ignore the geometry. A private profile sidesteps the
+  # singleton so the window really is the size we asked for.
+  if [ "$ISOLATE" -eq 1 ]; then
+    ARGS+=(--user-data-dir="$CACHE/chrome-panel-profile" --no-first-run)
+  fi
+  echo "Opening panel window with $(basename "$BROWSER")."
+  "$BROWSER" "${ARGS[@]}" >/dev/null 2>&1 &
+  disown 2>/dev/null || true
+  if [ "$ISOLATE" -eq 0 ]; then
+    echo "If the window came up the wrong size, Chrome was already running" \
+         "and reused its own geometry - retry with --isolate."
+  fi
+else
+  echo "No Chromium browser found, falling back to your default browser."
+  echo "Note: this opens a normal tab, not a chromeless panel window."
+  open "$URL" 2>/dev/null || die "could not open $URL"
+fi
+
+[ "$QUIET" -eq 1 ] || short_tips
