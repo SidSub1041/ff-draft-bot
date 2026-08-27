@@ -1,401 +1,361 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Draft Copilot — a live draft assistant for fantasy football</title>
-<meta name="description" content="Draft Copilot docks beside your Sleeper or Yahoo draft room with live best-available rankings, survival odds, and a plain-English assistant. It advises. You pick.">
-<link rel="canonical" href="https://YOUR_DOMAIN/">
+<title>Sid's Draft Copilot — a live draft assistant for fantasy football</title>
+<meta name="description" content="A live fantasy football draft copilot: real-time board, survival odds, plain-English chat. Works with Sleeper today, Yahoo in beta. Advisory only — it never makes a pick.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0c0f14;
-    --bg-raised: #131822;
-    --bg-inset: #0a0d12;
-    --border: #232b38;
-    --text: #e6e9ee;
-    --text-dim: #9aa4b2;
-    --accent: #4ade80;
-    --accent-ink: #06180c;
-    --warn: #fbbf24;
-    --muted-chip: #1b2230;
-    --max: 68rem;
+  :root{
+    --navy:#0d1b2e; --navy-2:#12233c; --ink:#16283f; --ink-dim:#51637c;
+    --blue:#0e9bff; --blue-deep:#0769de; --blue-ink:#0a5bb5;
+    --tint:#eef6ff; --tint-2:#e2f0ff; --line:#dce7f2; --white:#fff;
+    --qb:#d6336c; --wr:#1971c2; --rb:#0c8a5f; --te:#b25e00;
+    --good:#0c8a5f; --bad:#c2255c;
+    --radius:12px; --shadow:0 10px 34px rgba(13,27,46,.12);
+    --sans:'Poppins',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
   }
-  @media (prefers-color-scheme: light) {
-    :root {
-      --bg: #f7f8fa;
-      --bg-raised: #ffffff;
-      --bg-inset: #eef1f5;
-      --border: #d8dde5;
-      --text: #17202b;
-      --text-dim: #5b6673;
-      --accent: #15803d;
-      --accent-ink: #ffffff;
-      --warn: #b45309;
-      --muted-chip: #e7ebf1;
-    }
-  }
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-  }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-  }
-  a { color: var(--accent); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 1.25rem; }
+  *{box-sizing:border-box;margin:0}
+  html{scroll-behavior:smooth;scroll-padding-top:74px}
+  body{font:15px/1.65 var(--sans);color:var(--ink);background:var(--white)}
+  img{max-width:100%;display:block}
+  a{color:var(--blue-ink);text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+  h1,h2,h3{line-height:1.25;font-weight:600}
+  h2{font-size:26px;color:var(--navy)}
+  .kicker{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.12em;
+          text-transform:uppercase;color:var(--blue);margin-bottom:10px}
 
-  /* Header */
-  header.site {
-    position: sticky; top: 0; z-index: 10;
-    background: color-mix(in srgb, var(--bg) 88%, transparent);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--border);
-  }
-  header.site .wrap {
-    display: flex; align-items: center; gap: 1.5rem;
-    padding-top: .75rem; padding-bottom: .75rem;
-  }
-  .brand { font-weight: 700; letter-spacing: -.01em; color: var(--text); }
-  .brand:hover { text-decoration: none; }
-  nav.top { margin-left: auto; display: flex; gap: 1.1rem; flex-wrap: wrap; }
-  nav.top a { color: var(--text-dim); font-size: .92rem; }
-  nav.top a:hover { color: var(--text); text-decoration: none; }
+  /* ------------------------------------------------------------- nav */
+  #nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.94);
+       backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  #nav .wrap{display:flex;align-items:center;gap:26px;height:62px}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:700;font-size:17px;color:var(--navy)}
+  .brand .dot{width:26px;height:26px;border-radius:8px;flex:none;
+    background:linear-gradient(135deg,var(--blue),var(--blue-deep));
+    display:grid;place-items:center;color:#fff;font-size:13px;font-weight:700}
+  .tabs{display:flex;gap:2px;flex:1}
+  .tabs a{padding:8px 13px;border-radius:8px;font-weight:500;font-size:14px;color:var(--ink-dim)}
+  .tabs a:hover{background:var(--tint);color:var(--blue-ink)}
+  .btn{display:inline-block;padding:11px 22px;border-radius:10px;font-weight:600;
+       font-size:15px;text-align:center;transition:transform .08s ease}
+  .btn:active{transform:scale(.98)}
+  .btn-blue{background:var(--blue-deep);color:#fff}
+  .btn-blue:hover{background:var(--blue-ink)}
+  .btn-ghost{border:1.5px solid rgba(255,255,255,.55);color:#fff}
+  .btn-ghost:hover{background:rgba(255,255,255,.1)}
+  .btn-small{padding:9px 16px;font-size:14px}
 
-  /* Hero */
-  .hero { padding: 5rem 0 3.5rem; }
-  .hero h1 {
-    font-size: clamp(1.9rem, 4.5vw, 3rem);
-    line-height: 1.15; letter-spacing: -.02em; margin: 0 0 1rem;
-    max-width: 40rem;
-  }
-  .hero p.sub {
-    font-size: 1.15rem; color: var(--text-dim); max-width: 38rem; margin: 0 0 2rem;
-  }
-  .cta-row { display: flex; gap: .75rem; flex-wrap: wrap; align-items: center; }
-  .btn {
-    display: inline-block; padding: .7rem 1.3rem; border-radius: .5rem;
-    font-weight: 600; font-size: 1rem; border: 1px solid transparent;
-  }
-  .btn:hover { text-decoration: none; }
-  .btn.primary { background: var(--accent); color: var(--accent-ink); }
-  .btn.primary:hover { filter: brightness(1.08); }
-  .btn.secondary { border-color: var(--border); color: var(--text); background: var(--bg-raised); }
-  .btn.secondary:hover { border-color: var(--text-dim); }
-  .hero .fine { margin-top: 1rem; font-size: .85rem; color: var(--text-dim); }
+  /* ------------------------------------------------------------ hero */
+  #hero{background:linear-gradient(160deg,var(--navy) 0%,var(--navy-2) 58%,#0b3560 130%);
+        color:#fff;padding:64px 0 210px;text-align:center}
+  #hero .kicker{color:var(--blue)}
+  #hero h1{font-size:clamp(30px,5vw,44px);font-weight:700;max-width:760px;margin:0 auto 16px}
+  #hero h1 em{font-style:normal;color:var(--blue)}
+  #hero p.sub{max-width:620px;margin:0 auto 28px;color:#c3d3e6;font-size:17px}
+  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+  .fine{margin-top:16px;font-size:12.5px;color:#8fa6c2}
 
-  /* Sections */
-  section { padding: 3.5rem 0; border-top: 1px solid var(--border); }
-  section h2 {
-    font-size: clamp(1.4rem, 2.8vw, 1.9rem); letter-spacing: -.015em; margin: 0 0 .5rem;
-  }
-  section p.lede { color: var(--text-dim); max-width: 42rem; margin: 0 0 2rem; }
+  /* elevated screenshot card, overlapping the hero edge */
+  #shot{margin-top:-170px;padding-bottom:8px}
+  .shot-card{background:var(--white);border:1px solid var(--line);border-radius:16px;
+             box-shadow:var(--shadow);padding:10px;max-width:980px;margin:0 auto}
+  .shot-card img{border-radius:10px;width:100%}
+  .shot-cap{text-align:center;font-size:13px;color:var(--ink-dim);padding:12px 8px 6px}
 
-  /* How it works */
-  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; counter-reset: step; }
-  .step {
-    background: var(--bg-raised); border: 1px solid var(--border); border-radius: .75rem;
-    padding: 1.25rem;
-  }
-  .step .num {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 1.8rem; height: 1.8rem; border-radius: 50%;
-    background: var(--muted-chip); color: var(--text); font-weight: 700; font-size: .9rem;
-    margin-bottom: .75rem;
-  }
-  .step h3 { margin: 0 0 .35rem; font-size: 1.05rem; }
-  .step p { margin: 0; color: var(--text-dim); font-size: .95rem; }
+  /* ------------------------------------------------------- platforms */
+  #platforms{padding:54px 0 10px;text-align:center}
+  .hosts{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:24px}
+  .host{display:flex;flex-direction:column;align-items:center;gap:8px;
+        border:1px solid var(--line);border-radius:var(--radius);
+        padding:20px 26px;min-width:168px;background:var(--white)}
+  .host .mark{font-weight:700;font-size:19px;letter-spacing:.02em}
+  .host.sleeper .mark{color:#0e9bff}
+  .host.yahoo .mark{color:#5f01d1}
+  .host.espn .mark{color:#c8102e}
+  .host.nfl .mark{color:#013369}
+  .pill{font-size:11.5px;font-weight:600;padding:3px 11px;border-radius:99px}
+  .pill.live{background:#e5f6ee;color:var(--good)}
+  .pill.beta{background:var(--tint-2);color:var(--blue-ink)}
+  .pill.soon{background:#f1f4f8;color:var(--ink-dim)}
+  .host-note{font-size:12.5px;color:var(--ink-dim);margin-top:14px}
 
-  /* Feature grid */
-  .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-  .card {
-    background: var(--bg-raised); border: 1px solid var(--border); border-radius: .75rem;
-    padding: 1.25rem;
-  }
-  .card h3 { margin: 0 0 .4rem; font-size: 1.05rem; }
-  .card p { margin: 0; color: var(--text-dim); font-size: .95rem; }
+  /* -------------------------------------------------------- features */
+  #features{padding:64px 0}
+  #features .head{text-align:center;max-width:640px;margin:0 auto 40px}
+  .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+  .card{border:1px solid var(--line);border-radius:var(--radius);background:var(--white);
+        padding:22px;display:flex;flex-direction:column;gap:12px}
+  .card h3{font-size:17px;color:var(--navy)}
+  .card p{font-size:14px;color:var(--ink-dim)}
+  .viz{background:var(--tint);border:1px solid var(--tint-2);border-radius:10px;
+       padding:14px;font-size:12.5px}
 
-  /* Screenshot placeholder */
-  .shot-frame {
-    border: 2px dashed var(--border); border-radius: .75rem;
-    background: var(--bg-inset);
-    aspect-ratio: 16 / 9;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--text-dim); font-size: .95rem; letter-spacing: .04em;
-    text-transform: uppercase;
-  }
+  /* mini-viz: survival meter (single measure -> stat + bar) */
+  .meter .who{display:flex;justify-content:space-between;font-weight:600;color:var(--ink)}
+  .meter .num{font-size:22px;font-weight:700;color:var(--blue-ink)}
+  .meter .bar{height:14px;border-radius:4px;background:var(--tint-2);
+              margin:8px 0 4px;position:relative;overflow:hidden}
+  .meter .fill{position:absolute;inset:0 auto 0 0;width:36%;border-radius:4px 0 0 4px;
+               background:var(--blue-deep)}
+  .meter .cap{color:var(--ink-dim)}
 
-  /* Platform table */
-  .table-scroll { overflow-x: auto; }
-  table.platforms { width: 100%; border-collapse: collapse; min-width: 34rem; }
-  table.platforms th, table.platforms td {
-    text-align: left; padding: .75rem 1rem; border-bottom: 1px solid var(--border);
-    font-size: .95rem;
-  }
-  table.platforms th { color: var(--text-dim); font-weight: 600; font-size: .85rem; text-transform: uppercase; letter-spacing: .05em; }
-  .tag {
-    display: inline-block; padding: .15rem .6rem; border-radius: 999px;
-    font-size: .8rem; font-weight: 600;
-  }
-  .tag.full { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
-  .tag.beta { background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
-  .tag.later { background: var(--muted-chip); color: var(--text-dim); }
+  /* mini-viz: position chips (identity -> labeled hue chips, 2px gaps) */
+  .board{display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
+  .chip{color:#fff;font-weight:600;text-align:center;border-radius:4px;padding:7px 2px}
+  .chip small{display:block;font-weight:500;font-size:10.5px;opacity:.92}
+  .chip.qb{background:var(--qb)} .chip.wr{background:var(--wr)}
+  .chip.rb{background:var(--rb)} .chip.te{background:var(--te)}
+  .board-cap{color:var(--ink-dim);margin-top:8px}
+  .tagline{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .vtag{border-radius:99px;padding:2px 9px;font-weight:600;font-size:11px}
+  .vtag.value{background:#e5f6ee;color:var(--good)}
+  .vtag.reach{background:#fbe7ee;color:var(--bad)}
 
-  /* How it advises */
-  .advises { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
-  .advises .col p { color: var(--text-dim); margin: 0 0 1rem; }
-  .advises .col p strong { color: var(--text); }
-  .callout {
-    border-left: 3px solid var(--accent);
-    background: var(--bg-raised);
-    border-radius: 0 .5rem .5rem 0;
-    padding: 1rem 1.25rem;
-  }
-  .callout p { margin: 0; }
+  /* mini-viz: chat exchange */
+  .talk{display:flex;flex-direction:column;gap:7px}
+  .say{max-width:92%;padding:8px 12px;border-radius:12px;line-height:1.5}
+  .say.you{align-self:flex-end;background:var(--blue-deep);color:#fff;border-bottom-right-radius:4px}
+  .say.bot{align-self:flex-start;background:var(--white);border:1px solid var(--line);
+           border-bottom-left-radius:4px;color:var(--ink)}
 
-  /* FAQ */
-  .faq details {
-    border: 1px solid var(--border); border-radius: .6rem;
-    background: var(--bg-raised); margin-bottom: .6rem;
-    padding: 0 1.1rem;
-  }
-  .faq summary {
-    cursor: pointer; font-weight: 600; padding: .9rem 0; list-style: none;
-    display: flex; justify-content: space-between; align-items: center; gap: 1rem;
-  }
-  .faq summary::-webkit-details-marker { display: none; }
-  .faq summary::after { content: "+"; color: var(--text-dim); font-weight: 400; font-size: 1.2rem; }
-  .faq details[open] summary::after { content: "\2212"; }
-  .faq details p { margin: 0 0 1rem; color: var(--text-dim); font-size: .95rem; }
+  /* ------------------------------------------------------ see it live */
+  #live{background:var(--tint);padding:64px 0}
+  .live-grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:40px;align-items:center}
+  .steps{list-style:none;display:flex;flex-direction:column;gap:18px;margin-top:22px}
+  .steps li{display:flex;gap:14px}
+  .steps .n{flex:none;width:30px;height:30px;border-radius:99px;background:var(--blue-deep);
+            color:#fff;font-weight:700;display:grid;place-items:center;font-size:14px}
+  .steps b{color:var(--navy)}
+  .steps p{font-size:14px;color:var(--ink-dim)}
+  .side-card{background:var(--white);border:1px solid var(--line);border-radius:16px;
+             box-shadow:var(--shadow);padding:8px}
+  .side-card img{border-radius:10px}
 
-  /* Footer */
-  footer.site {
-    border-top: 1px solid var(--border);
-    padding: 2.5rem 0 3rem;
-    font-size: .9rem; color: var(--text-dim);
-  }
-  footer.site .credit {
-    background: var(--bg-raised); border: 1px solid var(--border); border-radius: .6rem;
-    padding: 1rem 1.25rem; margin-bottom: 1.5rem; color: var(--text);
-  }
-  footer.site .links { display: flex; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1rem; }
-  footer.site p { margin: .25rem 0; }
+  /* --------------------------------------------------------- honesty */
+  #honest{padding:56px 0}
+  .honest-box{border:1.5px solid var(--tint-2);background:linear-gradient(180deg,var(--tint) 0,#fff 100%);
+              border-radius:16px;padding:34px;text-align:center;max-width:820px;margin:0 auto}
+  .honest-box p{max-width:640px;margin:10px auto 0;color:var(--ink-dim)}
 
-  @media (max-width: 720px) {
-    .steps, .features { grid-template-columns: 1fr; }
-    .advises { grid-template-columns: 1fr; }
-    .hero { padding: 3.5rem 0 2.5rem; }
+  /* -------------------------------------------------------------- faq */
+  #faq{padding:24px 0 64px}
+  #faq h2{text-align:center;margin-bottom:26px}
+  details{border:1px solid var(--line);border-radius:10px;margin:0 auto 10px;max-width:760px;
+          background:var(--white)}
+  summary{cursor:pointer;padding:15px 18px;font-weight:600;color:var(--navy);list-style:none;
+          display:flex;justify-content:space-between;gap:10px}
+  summary::after{content:"+";color:var(--blue);font-weight:700}
+  details[open] summary::after{content:"–"}
+  details div{padding:0 18px 15px;color:var(--ink-dim);font-size:14px}
+
+  /* ------------------------------------------------------------ footer */
+  footer{background:var(--navy);color:#a9bdd6;padding:38px 0;font-size:13px}
+  footer .wrap{display:flex;flex-direction:column;gap:10px}
+  footer a{color:#dce9f8}
+  footer .credit{color:#fff}
+
+  @media (max-width:880px){
+    .tabs{display:none}
+    .cards{grid-template-columns:1fr}
+    .live-grid{grid-template-columns:1fr}
+    .side-card{max-width:340px;margin:0 auto}
+    #hero{padding-bottom:150px}
+    #shot{margin-top:-120px}
   }
 </style>
 </head>
 <body>
 
-<header class="site">
+<nav id="nav">
   <div class="wrap">
-    <a class="brand" href="#top">Draft Copilot</a>
-    <nav class="top">
-      <a href="#how-it-works">How it works</a>
+    <span class="brand"><span class="dot">SD</span> Sid's Draft Copilot</span>
+    <div class="tabs">
       <a href="#features">Features</a>
       <a href="#platforms">Platforms</a>
-      <a href="#how-it-advises">How it advises</a>
+      <a href="#live">See it live</a>
       <a href="#faq">FAQ</a>
-    </nav>
+    </div>
+    <a class="btn btn-blue btn-small" href="https://chromewebstore.google.com/detail/EXTENSION_ID">Add to Chrome</a>
+  </div>
+</nav>
+
+<header id="hero">
+  <div class="wrap">
+    <span class="kicker">Sid's Draft Copilot</span>
+    <h1>Draft with a <em>copilot</em> that does the math while you're on the clock</h1>
+    <p class="sub">A live assistant that docks beside your draft room: real-time board,
+       best available by position, the odds a player survives to your next pick, and a
+       chat you can ask in plain English.</p>
+    <div class="cta-row">
+      <a class="btn btn-blue" href="https://chromewebstore.google.com/detail/EXTENSION_ID">Add to Chrome — free</a>
+      <a class="btn btn-ghost" href="/app">Open the web app</a>
+    </div>
+    <p class="fine">Advisory only — it never auto-drafts for you.</p>
   </div>
 </header>
 
-<main id="top">
+<section id="shot">
+  <div class="wrap">
+    <figure class="shot-card">
+      <img src="assets/draft-photo.jpg"
+           onerror="this.onerror=null;this.src='assets/panel-full.png'"
+           alt="The Draft Copilot panel during a live draft: board on the left, best-by-position and chat on the right">
+      <figcaption class="shot-cap">Mid-draft: the copilot docked beside a live Sleeper mock —
+        board mirrored, options ranked, chat one keystroke away.</figcaption>
+    </figure>
+  </div>
+</section>
 
-  <!-- Hero -->
-  <div class="hero">
-    <div class="wrap">
-      <h1>A draft assistant that sits next to your draft room and tells you the truth.</h1>
-      <p class="sub">Draft Copilot mirrors your live draft, ranks who's actually worth taking, and estimates whether your guy survives to your next pick. It advises. You make every pick.</p>
-      <div class="cta-row">
-        <a class="btn primary" href="https://chromewebstore.google.com/detail/EXTENSION_ID">Add to Chrome</a>
-        <a class="btn secondary" href="/app">Open the web app</a>
+<section id="platforms">
+  <div class="wrap">
+    <span class="kicker">Syncs with your draft</span>
+    <h2>Works where you draft</h2>
+    <div class="hosts">
+      <div class="host sleeper"><span class="mark">SLEEPER</span><span class="pill live">Live</span></div>
+      <div class="host yahoo"><span class="mark">YAHOO!</span><span class="pill beta">Beta</span></div>
+      <div class="host espn"><span class="mark">ESPN</span><span class="pill soon">Coming later</span></div>
+      <div class="host nfl"><span class="mark">NFL FANTASY</span><span class="pill soon">Coming later</span></div>
+    </div>
+    <p class="host-note">Sleeper needs no login at all. Yahoo connects through Yahoo's own
+      official sign-in — your password never touches this service. Platform names and marks
+      belong to their owners; used only to describe compatibility.</p>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <div class="head">
+      <span class="kicker">What it does</span>
+      <h2>Numbers you'd want, at the moment you need them</h2>
+    </div>
+    <div class="cards">
+
+      <div class="card">
+        <div class="viz meter" role="img"
+             aria-label="Example: Tucker Kraft has a 36 percent chance of lasting to your next pick">
+          <div class="who"><span>Tucker Kraft · TE</span><span class="num">36%</span></div>
+          <div class="bar"><span class="fill"></span></div>
+          <div class="cap">chance he lasts to your pick at 68 — from 400 simulated drafts</div>
+        </div>
+        <h3>Will he last?</h3>
+        <p>Every candidate carries a survival probability from Monte Carlo simulations of
+           the rival picks between now and your next turn — so you know when you can wait
+           and when waiting loses him.</p>
       </div>
-      <p class="fine">Works with Sleeper today. Yahoo Fantasy in beta. Never auto-drafts for you.</p>
+
+      <div class="card">
+        <div class="viz">
+          <div class="board" role="img" aria-label="Best available by position: quarterback, running back, wide receiver, tight end">
+            <span class="chip qb">QB<small>Allen</small></span>
+            <span class="chip rb">RB<small>Gibbs</small></span>
+            <span class="chip wr">WR<small>Nacua</small></span>
+            <span class="chip te">TE<small>McBride</small></span>
+          </div>
+          <div class="tagline">
+            <span class="vtag value">value +9</span>
+            <span class="vtag reach">reach 13</span>
+          </div>
+          <div class="board-cap">ranked by your strategy — not raw ADP</div>
+        </div>
+        <h3>Best by position</h3>
+        <p>Four live shortlists ordered by the strategy you chose — RB-heavy, zero-RB,
+           best-player-available and more — with value and reach flagged against market ADP.</p>
+      </div>
+
+      <div class="card">
+        <div class="viz talk" role="img" aria-label="Example chat: user asks whether to take a receiver or running back; the copilot answers with a verdict">
+          <span class="say you">rb or wr here?</span>
+          <span class="say bot">Take Flowers — you already have your three RBs, and he's
+            only 1% to last to pick 68.</span>
+        </div>
+        <h3>Ask in plain English</h3>
+        <p>“Will Kraft last?” “Why not Nabers?” “Walk me through the next three rounds.”
+           Short verdict first; say “more” for the full reasoning. Injuries and rookie
+           context are already priced in.</p>
+      </div>
+
     </div>
   </div>
+</section>
 
-  <!-- How it works -->
-  <section id="how-it-works">
-    <div class="wrap">
-      <h2>How it works</h2>
-      <p class="lede">Three steps, no setup ritual.</p>
-      <div class="steps">
-        <div class="step">
-          <span class="num">1</span>
-          <h3>Install the extension</h3>
-          <p>Add Draft Copilot to Chrome. Or skip the extension and use the web app in a second window.</p>
-        </div>
-        <div class="step">
-          <span class="num">2</span>
-          <h3>Open your draft</h3>
-          <p>Head to your Sleeper or Yahoo Fantasy draft room like you normally would.</p>
-        </div>
-        <div class="step">
-          <span class="num">3</span>
-          <h3>The copilot docks beside it</h3>
-          <p>A panel appears next to your draft board with live rankings, odds, and a chat box. That's it.</p>
-        </div>
-      </div>
+<section id="live">
+  <div class="wrap live-grid">
+    <div>
+      <span class="kicker">See it in action</span>
+      <h2>Three steps, and it's beside your draft</h2>
+      <ol class="steps">
+        <li><span class="n">1</span><div><b>Add the extension.</b>
+          <p>One click from the Chrome Web Store. It stores nothing but your settings.</p></div></li>
+        <li><span class="n">2</span><div><b>Open your draft room.</b>
+          <p>Sleeper today, Yahoo in beta. The copilot docks itself on the right — resizable,
+             collapsible, out of the way.</p></div></li>
+        <li><span class="n">3</span><div><b>Draft your team.</b>
+          <p>The board mirrors every pick live. You read, you ask, <b>you</b> pick — it never
+             clicks anything.</p></div></li>
+      </ol>
     </div>
-  </section>
+    <figure class="side-card">
+      <img src="assets/panel-sidebar.png"
+           alt="The copilot in its narrow sidebar layout: tabs for options, board and chat">
+    </figure>
+  </div>
+</section>
 
-  <!-- Features -->
-  <section id="features">
-    <div class="wrap">
-      <h2>What it actually does</h2>
-      <p class="lede">Real features, nothing padded.</p>
-      <div class="features">
-        <div class="card">
-          <h3>Live draft board mirror</h3>
-          <p>Every pick shows up in the panel the moment it happens. No refreshing, no retyping picks into a spreadsheet.</p>
-        </div>
-        <div class="card">
-          <h3>Best available, by position</h3>
-          <p>Not a static cheat sheet. Rankings re-sort as the draft unfolds, weighted by your strategy and roster needs.</p>
-        </div>
-        <div class="card">
-          <h3>"Will he last?" survival odds</h3>
-          <p>Monte Carlo simulations estimate the chance a player is still on the board at your next pick, so you know when to reach and when to wait.</p>
-        </div>
-        <div class="card">
-          <h3>Plain-English assistant</h3>
-          <p>Ask it things like "who should I take here" or "compare these two backs" and get a straight answer with the reasoning behind it.</p>
-        </div>
-        <div class="card">
-          <h3>Injury flags &amp; rookie logic</h3>
-          <p>Injury designations surface right on the board, and rookies are weighted by real NFL draft capital, not preseason hype.</p>
-        </div>
-        <div class="card">
-          <h3>Strategy presets, tunable mid-draft</h3>
-          <p>RB-heavy, zero-RB, hero-RB, BPA, superflex, dynasty. Pick one to start, then adjust it on the fly when the draft goes sideways.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Screenshot placeholder -->
-  <section id="screenshot" aria-label="Screenshot">
-    <div class="wrap">
-      <div class="shot-frame">panel screenshot</div>
-    </div>
-  </section>
-
-  <!-- Platform support -->
-  <section id="platforms">
-    <div class="wrap">
-      <h2>Platform support</h2>
-      <p class="lede">We only claim what works today.</p>
-      <div class="table-scroll">
-        <table class="platforms">
-          <thead>
-            <tr><th>Platform</th><th>Status</th><th>Notes</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Sleeper</td>
-              <td><span class="tag full">Full support</span></td>
-              <td>No login required — reads the live draft directly.</td>
-            </tr>
-            <tr>
-              <td>Yahoo Fantasy</td>
-              <td><span class="tag beta">Beta</span></td>
-              <td>Connects through Yahoo's official OAuth. We never see your password.</td>
-            </tr>
-            <tr>
-              <td>ESPN</td>
-              <td><span class="tag later">Not yet</span></td>
-              <td>Coming later.</td>
-            </tr>
-            <tr>
-              <td>NFL.com</td>
-              <td><span class="tag later">Not yet</span></td>
-              <td>Coming later.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- How it advises -->
-  <section id="how-it-advises">
-    <div class="wrap">
-      <h2>How it advises</h2>
-      <p class="lede">No black box, no magic. Here's what's under the hood.</p>
-      <div class="advises">
-        <div class="col">
-          <p><strong>The numbers.</strong> The engine starts from rankings built on the <a href="JOEL_LINK">Joel Smyth 2026 Draft Guide</a> — genuinely great work, go read it — then layers on live context: positional scarcity as the board thins, your roster's actual holes, injury flags, rookie draft capital, and Monte Carlo survival odds for your upcoming picks.</p>
-          <p><strong>The strategy.</strong> Your chosen preset shapes how those numbers are weighed. Zero-RB and RB-heavy see the same board very differently, and you can retune the strategy mid-draft when your plan meets reality.</p>
-        </div>
-        <div class="col">
-          <div class="callout">
-            <p><strong>Advisory only, always.</strong> Draft Copilot never makes a pick for you, never clicks anything in your draft room, and never will. It puts its best case in front of you — the final call is yours. If you fade the bot and it works out, you get the credit.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FAQ -->
-  <section id="faq">
-    <div class="wrap">
-      <h2>FAQ</h2>
-      <div class="faq">
-        <details>
-          <summary>Does it make picks for me?</summary>
-          <p>No. Never. It recommends, ranks, and explains — you click the pick button in your draft room yourself. There is no auto-draft mode and we won't build one.</p>
-        </details>
-        <details>
-          <summary>Does it see my password?</summary>
-          <p>No. Sleeper requires no login at all — the copilot reads the live draft without credentials. Yahoo Fantasy connects through Yahoo's official OAuth flow, which means you sign in on Yahoo's site and Yahoo hands us a limited token. Your password never touches our servers.</p>
-        </details>
-        <details>
-          <summary>What does it cost?</summary>
-          <p>Nothing right now — everything is free while we're in beta. If paid tiers show up later, we'll say so plainly and ahead of time. No surprise paywalls mid-draft.</p>
-        </details>
-        <details>
-          <summary>Is my draft data stored?</summary>
-          <p>Draft sessions are temporary and expire after your draft ends. We don't build a profile on you or keep your league data around. Details in the <a href="/privacy">privacy policy</a>.</p>
-        </details>
-        <details>
-          <summary>Can I self-host it?</summary>
-          <p>Yes. The project is open source — grab it at <a href="GITHUB_LINK">GITHUB_LINK</a> and run the whole thing on your own machine.</p>
-        </details>
-        <details>
-          <summary>What about ESPN or NFL.com leagues?</summary>
-          <p>Not supported yet. Both are on the list for later, but we're not going to promise a date we can't keep.</p>
-        </details>
-      </div>
-    </div>
-  </section>
-
-</main>
-
-<!-- Footer -->
-<footer class="site">
+<section id="honest">
   <div class="wrap">
-    <div class="credit">
-      Rankings and strategy are built on the <a href="JOEL_LINK">Joel Smyth 2026 Draft Guide</a>. If you draft seriously, his work is worth your money — this tool exists because his guide is that good. Joel is not affiliated with Draft Copilot and does not endorse it. More in the <a href="/about">about section</a>.
+    <div class="honest-box">
+      <span class="kicker">How it advises</span>
+      <h2>An engine with receipts, not vibes</h2>
+      <p>Every suggestion is a scored breakdown you can expand: projection versus positional
+         replacement, ADP value or reach, tier scarcity, roster fit, injury status, and the
+         simulated odds at your next pick. Rankings and strategy are built on
+         <a href="JOEL_LINK">Joel Smyth's 2026 Draft Guide</a>, and the engine shows its work
+         on every pick. It recommends — the pick is always yours.</p>
     </div>
-    <div class="links">
-      <a href="/about">About</a>
-      <a href="/privacy">Privacy</a>
-      <a href="https://chromewebstore.google.com/detail/EXTENSION_ID">Chrome extension</a>
-      <a href="/app">Web app</a>
-      <a href="mailto:CONTACT_EMAIL">CONTACT_EMAIL</a>
-    </div>
-    <p>Draft Copilot advises only — it never makes picks for you.</p>
-    <p>Not affiliated with Sleeper, Yahoo, ESPN, the NFL, or Joel Smyth.</p>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <h2>Questions, answered honestly</h2>
+    <details><summary>Does it make picks for me?</summary>
+      <div>No, and it can't. There is no code path that submits a pick, clicks a button in
+      your draft room, or automates your account. It advises; you draft.</div></details>
+    <details><summary>Does it see my password?</summary>
+      <div>Never. Sleeper drafts are read through Sleeper's public API — no login involved.
+      Yahoo uses Yahoo's own official OAuth sign-in page; this service receives a read-only
+      token you can revoke in your Yahoo settings at any time.</div></details>
+    <details><summary>What does it cost?</summary>
+      <div>It's free. If hosting costs ever change that, the change will be announced here
+      first — no surprise paywalls mid-season.</div></details>
+    <details><summary>Is my draft data stored?</summary>
+      <div>Your session — the draft you connect and your chat — is anonymous and expires
+      automatically after inactivity. No accounts, no emails collected. Details in the
+      <a href="/privacy">privacy policy</a>.</div></details>
+    <details><summary>Can I self-host it?</summary>
+      <div>Yes — the whole thing is open source at <a href="GITHUB_LINK">GITHUB_LINK</a>,
+      and runs locally with one command. The hosted service is the same code.</div></details>
+    <details><summary>Where do the rankings come from?</summary>
+      <div>The engine's value model is fit to Joel Smyth's 2026 Draft Guide — rankings,
+      adjusted points-per-game tables, and draft strategy — combined with live market ADP,
+      injury data, and Monte Carlo simulation. He doesn't endorse this project; we just
+      think his work is excellent.</div></details>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span class="credit">Rankings &amp; strategy built on
+      <a href="JOEL_LINK">Joel Smyth's 2026 Draft Guide</a> — credit where it's due.</span>
+    <span><a href="/privacy">Privacy</a> · <a href="/terms">Terms</a> ·
+      <a href="mailto:CONTACT_EMAIL">CONTACT_EMAIL</a></span>
+    <span>Advisory only — Sid's Draft Copilot never makes a pick for you.</span>
+    <span>Not affiliated with, or endorsed by, Sleeper, Yahoo, ESPN, the NFL, or Joel Smyth.
+      All platform names and marks are property of their respective owners.</span>
   </div>
 </footer>
 
