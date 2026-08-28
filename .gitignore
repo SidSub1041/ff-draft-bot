@@ -11,3 +11,4 @@ server/data/raw/
 *.log
 store/ffbot-extension.zip
 design/
+.claude/

@@ -6,69 +6,132 @@
 <title>Sid's Draft Copilot — install guide</title>
 <link rel="stylesheet" href="/assets/fonts/poppins.css">
 <style>
-  :root{--navy:#0d1b2e;--ink:#16283f;--ink-dim:#51637c;--blue:#0e9bff;
-        --blue-deep:#0769de;--tint:#eef6ff;--line:#dce7f2;
-        --sans:'Poppins',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}
+  :root{--field:#0b3b1e;--paper:#f4f9ef;--ink:#14261a;--ink-dim:#47624f;
+        --lime:#a3e635;--lime-ink:#3f6212;--chalk:#d9f99d;--line:#cfe6c3;
+        --sans:'Poppins',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+        --display:'Anton','Poppins',sans-serif}
   *{box-sizing:border-box;margin:0}
-  body{font:15px/1.65 var(--sans);color:var(--ink);background:var(--tint);
-       min-height:100vh;display:grid;place-items:center;padding:24px}
-  .card{background:#fff;border:1px solid var(--line);border-radius:16px;
-        box-shadow:0 10px 34px rgba(13,27,46,.12);max-width:560px;padding:38px}
-  .kicker{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
-          color:var(--blue)}
-  h1{font-size:24px;color:var(--navy);margin:8px 0 12px}
-  p{color:var(--ink-dim);margin-bottom:14px}
-  .btn{display:inline-block;padding:12px 22px;border-radius:10px;font-weight:600;
-       background:var(--blue-deep);color:#fff;text-decoration:none;margin:6px 8px 6px 0}
-  .btn.ghost{background:#fff;color:var(--blue-deep);border:1.5px solid var(--line)}
-  ol{margin:10px 0 16px 20px;color:var(--ink-dim)}
-  ol li{margin-bottom:8px}
-  code{background:var(--tint);border:1px solid var(--line);border-radius:6px;
-       padding:2px 7px;font-size:13px}
-  a{color:#0a5bb5}
-  .note{font-size:13px;border-top:1px solid var(--line);padding-top:14px;margin-top:6px}
+  body{font:15px/1.65 var(--sans);color:var(--ink);background:var(--paper)}
+  a{color:var(--lime-ink)}
+  a:hover{color:#1a2e05}
+  .wrap{max-width:880px;margin:0 auto;padding:0 22px}
+
+  header{background:var(--field);color:#fff;position:relative;overflow:hidden;
+         padding:44px 0 40px}
+  header svg.play{position:absolute;right:12px;top:10px;opacity:.35}
+  .kicker{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+          color:var(--lime)}
+  h1{font-family:var(--display);font-weight:400;font-size:clamp(32px,5vw,44px);
+     text-transform:uppercase;letter-spacing:.01em;margin:6px 0 10px}
+  header p{color:#cdeed4;font-size:14.5px;max-width:480px;position:relative}
+
+  main{padding:44px 0 40px;display:flex;flex-direction:column;gap:26px}
+  .play-card{display:flex;gap:20px;background:#fff;border:1.5px solid var(--line);
+             border-radius:14px;padding:24px}
+  .num{font-family:var(--display);font-size:30px;color:var(--lime);
+       -webkit-text-stroke:1.5px var(--lime-ink);flex:none}
+  .play-card>div:last-child{display:flex;flex-direction:column;gap:10px;min-width:0}
+  .play-card h2{font-size:17px;font-weight:700}
+  .play-card p{font-size:13.5px;color:var(--ink-dim)}
+  .btn{display:inline-block;padding:12px 24px;border-radius:10px;font-weight:700;
+       font-size:13.5px;text-decoration:none;align-self:flex-start}
+  .btn-field{background:var(--field);color:#fff}
+  .btn-field:hover{background:#0d4423;color:#fff}
+  .btn-lime{background:var(--lime);color:var(--ink)}
+  .btn-lime:hover{background:var(--chalk);color:var(--ink)}
+  .callout{background:#eef7e6;border:1px solid var(--line);border-radius:10px;
+           padding:14px 16px;font-size:13px;color:#3a5242}
+  .callout b{color:var(--ink)}
+  .steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;
+         font-size:13px;color:var(--ink-dim)}
+  .steps div{display:flex;gap:8px}
+  .steps b{color:var(--lime-ink)}
+  code{background:#eef7e6;border:1px solid var(--line);border-radius:6px;
+       padding:2px 7px;font-size:12.5px;font-family:ui-monospace,SFMono-Regular,monospace}
+  .checksum{font-size:11px;color:#7d937f;font-family:ui-monospace,SFMono-Regular,monospace;
+            word-break:break-all}
+  .dl-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .foot{font-size:12px;color:#7d937f;text-align:center}
+  .foot a{color:#7d937f;text-decoration:underline}
+  @media (max-width:640px){.steps{grid-template-columns:1fr}}
+  /* squared: the field design has no rounded edges */
+  *,*::before,*::after{border-radius:0 !important}
 </style>
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
-<main class="card">
-  <span class="kicker">Sid's Draft Copilot</span>
-  <h1>Get the copilot</h1>
-  <p><b>No download needed:</b> the hosted web app is live at <a href="/app">/app</a> — open it, paste your Sleeper draft URL, and go. Prefer it docked inside your draft tab? Install the extension:</p>
 
-  <div style="border:1.5px solid var(--line);border-radius:10px;padding:14px 16px;
-              background:var(--tint);margin-bottom:18px">
-    <b style="color:var(--navy)">Read this before downloading.</b>
-    <p style="margin:6px 0 0">The extension asks for no account, reads no page content,
-       and cannot make picks - it only shows the copilot beside your draft. Its full
-       source is public at <a href="https://github.com/SidSub1041/ff-draft-bot">https://github.com/SidSub1041/ff-draft-bot</a>, so you can read every
-       line before loading it. Chrome will warn about Developer-mode extensions; that
-       warning is about the install method, and the one-click Web Store version
-       (which passes Google's review) is in preparation.</p>
+<header>
+  <svg class="play" width="340" height="150" viewBox="0 0 340 150" fill="none"
+       stroke="#d9f99d" stroke-width="2.5" aria-hidden="true">
+    <circle cx="40" cy="110" r="10"></circle>
+    <path d="M78 96 L94 112 M94 96 L78 112 M158 60 L174 76 M174 60 L158 76 M242 96 L258 112 M258 96 L242 112"></path>
+    <path d="M50 104 C 110 60, 150 60, 210 84 S 300 120, 328 70" stroke-dasharray="7 6"></path>
+    <path d="M328 70 l-4 -12 m4 12 l-13 -2"></path>
+  </svg>
+  <div class="wrap">
+    <span class="kicker">The playbook</span>
+    <h1>Get the copilot</h1>
+    <p>Two ways to run it. The web app needs nothing installed; the extension docks it
+       inside your draft room.</p>
   </div>
+</header>
 
-  <h1 style="font-size:17px">1 · Install the extension</h1>
-  <ol>
-    <li>Download the extension with the button below, then unzip it.</li>
-    <li>Open <code>chrome://extensions</code>, switch on <b>Developer mode</b>
-        (top right).</li>
-    <li>Click <b>Load unpacked</b> and choose the unzipped folder.</li>
-    <li>Open a Sleeper draft — the copilot docks on the right. (It talks to a copilot
-        server; see the self-host guide for running one.)</li>
-  </ol>
+<main class="wrap">
 
-  <h1 style="font-size:17px">2 · Self-host the whole thing</h1>
-  <p>The engine, panel and extension are open source — one command runs everything
-     locally: <a href="https://github.com/SidSub1041/ff-draft-bot">https://github.com/SidSub1041/ff-draft-bot</a></p>
+  <section class="play-card">
+    <span class="num">01</span>
+    <div>
+      <h2>No download: open the web app</h2>
+      <p>Go to <a href="/app"><b>sidsffcopilot.com/app</b></a>, paste your Sleeper draft
+         URL, done. Works in any browser, nothing stored on your machine.</p>
+      <a class="btn btn-field" href="/app">Open the web app</a>
+    </div>
+  </section>
 
-  <a class="btn" href="/assets/draft-copilot-extension.zip"
-     download="draft-copilot-extension.zip">Download the extension</a>
-  <p class="note" style="border:0;margin:4px 0 0;padding:0">Verify your download
-     (Terminal: <code>shasum -a 256 draft-copilot-extension.zip</code>):<br>
-     <code style="word-break:break-all">SHA-256 b38e6d66b877818d9070535f06148a25bd281e38ecde4e3a0c818c660afd0fbf</code></p>
-  <a class="btn ghost" href="/">Back to the site</a>
+  <section class="play-card">
+    <span class="num">02</span>
+    <div>
+      <h2>Docked: install the extension</h2>
+      <div class="callout"><b>Read this before downloading.</b> The extension asks for no
+        account, reads no page content, and cannot make picks — it only shows the copilot
+        beside your draft. Its full source is public at
+        <a href="https://github.com/SidSub1041/ff-draft-bot">github.com/SidSub1041/ff-draft-bot</a>,
+        so you can read every line before loading it. Chrome will warn about Developer-mode
+        extensions; that warning is about the install method, and the one-click Web Store
+        version (which passes Google's review) is in preparation.</div>
+      <div class="steps">
+        <div><b>a.</b><span>Download the zip below, then unzip it.</span></div>
+        <div><b>b.</b><span>Open <code>chrome://extensions</code>, switch on
+          <b>Developer mode</b> (top right).</span></div>
+        <div><b>c.</b><span>Click <b>Load unpacked</b> and choose the unzipped folder.</span></div>
+        <div><b>d.</b><span>Open your draft — the copilot docks on the right.</span></div>
+      </div>
+      <div class="dl-row">
+        <a class="btn btn-lime" href="/assets/draft-copilot-extension.zip"
+           download="draft-copilot-extension.zip">Download the extension</a>
+        <span class="checksum">SHA-256 395c02fca754b159942997d94e09bde5212c01827cb942af603865fd4b56062b</span>
+      </div>
+      <p>Verify the download in Terminal:
+         <code>shasum -a 256 draft-copilot-extension.zip</code></p>
+    </div>
+  </section>
 
-  <p class="note">A one-click Chrome Web Store install is in review-prep. Advisory only — the copilot never makes a pick for you.</p>
+  <section class="play-card">
+    <span class="num">03</span>
+    <div>
+      <h2>Yours: self-host the whole thing</h2>
+      <p>The engine, panel and extension are open source — one command runs everything
+         locally. Instructions at
+         <a href="https://github.com/SidSub1041/ff-draft-bot">github.com/SidSub1041/ff-draft-bot</a>.
+         The hosted service is the same code.</p>
+    </div>
+  </section>
+
+  <p class="foot">One-click Chrome Web Store install is in review-prep &middot;
+     Advisory only — the copilot never makes a pick for you &middot;
+     <a href="/">Back to the site</a></p>
 </main>
+
 </body>
 </html>

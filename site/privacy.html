@@ -7,8 +7,8 @@
 <meta name="description" content="What Draft Copilot collects, what it doesn't, and how long anything sticks around.">
 <link rel="stylesheet" href="/assets/fonts/poppins.css">
 <style>
-  :root{--navy:#0d1b2e;--ink:#16283f;--dim:#51637c;--blue:#0e9bff;
-    --deep:#0769de;--tint:#eef6ff;--tint2:#e2f0ff;--line:#dce7f2;
+  :root{--navy:#0b3b1e;--ink:#14261a;--dim:#47624f;--blue:#a3e635;
+    --deep:#3f6212;--tint:#f4f9ef;--tint2:#eef7e6;--line:#cfe6c3;
     --sans:'Poppins',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}
   *{box-sizing:border-box;margin:0}
   body{font:15px/1.7 var(--sans);color:var(--ink);background:var(--tint)}
@@ -37,6 +37,8 @@
   strong{color:var(--ink)}
   /* close each card before the next h2 */
   main{display:block}
+  /* squared: the field design has no rounded edges */
+  *,*::before,*::after{border-radius:0 !important}
 </style>
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
@@ -45,7 +47,7 @@
 <header class="site">
   <nav>
     <a class="wordmark" href="/">Sid's <span>Draft Copilot</span></a>
-    <a class="navlink" href="/about">About</a>
+    <a class="navlink" href="/">Home</a>
     <a class="navlink" href="/privacy" aria-current="page">Privacy</a>
     <a class="navlink" href="/terms">Terms</a>
   </nav>
@@ -128,8 +130,10 @@
     <li><strong>Sleeper linking is not a sign-in.</strong> Sleeper has no
         login system we can use; linking a username is a label on your
         account, nothing more.</li>
-    <li><strong>Deletion:</strong> email CONTACT_EMAIL and we will delete your
-        account and its archives.</li>
+    <li><strong>Deletion:</strong> ask through the project's
+        <a href="https://github.com/SidSub1041/ff-draft-bot/issues">GitHub issues</a>
+        (you only need to name the Google account to remove, not post anything
+        else publicly) and we will delete your account and its archives.</li>
   </ul>
 
   <h2 id="yahoo">Yahoo Fantasy (beta)</h2>
@@ -161,7 +165,8 @@
   <p>If this policy changes, the new version will be posted here with a new effective date. Since we have no way to contact you (by design), checking this page is the way to see updates.</p>
 
   <h2 id="contact">Contact</h2>
-  <p>Questions about any of this: <a href="mailto:CONTACT_EMAIL">CONTACT_EMAIL</a>.</p>
+  <p>Questions about any of this: open an issue at
+     <a href="https://github.com/SidSub1041/ff-draft-bot/issues">github.com/SidSub1041/ff-draft-bot</a>.</p>
 </main>
 
 <footer class="site">

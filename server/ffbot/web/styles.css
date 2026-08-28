@@ -12,17 +12,17 @@
 
 :root {
   color-scheme: dark;
-  --bg: #0b1626;
-  --bg-1: #101f36;
-  --bg-2: #15263f;
-  --bg-3: #1c3050;
-  --line: #23385a;
-  --line-2: #2f4a75;
-  --fg: #e6ebf2;
-  --fg-dim: #a3aec0;
-  --fg-mute: #6f7d90;
-  --accent: #2ea9ff;
-  --accent-ink: #06121f;
+  --bg: #081a10;
+  --bg-1: #0c2417;
+  --bg-2: #112f1e;
+  --bg-3: #173f28;
+  --line: #234832;
+  --line-2: #2f5f43;
+  --fg: #e9f4ec;
+  --fg-dim: #a7c1ad;
+  --fg-mute: #708a76;
+  --accent: #a3e635;
+  --accent-ink: #071f12;
   --good: #4cd08a;
   --warn: #f0b429;
   --bad: #ff6b6b;
@@ -40,7 +40,7 @@
   --te-wash: rgba(240, 180, 41, .16);
   --k-wash: rgba(183, 139, 240, .16);
   --def-wash: rgba(139, 151, 168, .16);
-  --mine-wash: rgba(88, 166, 255, .10);
+  --mine-wash: rgba(163, 230, 53, .12);
 
   --radius: 8px;
   --rail-w: 40px;      /* the sticky round-number column */
@@ -54,16 +54,16 @@
 @media (prefers-color-scheme: light) {
   :root {
     color-scheme: light;
-    --bg: #f6f7f9;
+    --bg: #f2f7ee;
     --bg-1: #ffffff;
-    --bg-2: #f0f2f6;
-    --bg-3: #e4e8ee;
-    --line: #d8dee6;
-    --line-2: #c2cad5;
-    --fg: #131922;
-    --fg-dim: #4a5666;
-    --fg-mute: #74808f;
-    --accent: #0a66c2;
+    --bg-2: #eaf2e3;
+    --bg-3: #dce9d2;
+    --line: #d3e2c8;
+    --line-2: #b9cfae;
+    --fg: #152318;
+    --fg-dim: #48604e;
+    --fg-mute: #71856f;
+    --accent: #3f6212;
     --accent-ink: #ffffff;
     --good: #16794a;
     --warn: #9a6700;
@@ -80,7 +80,7 @@
     --te-wash: rgba(154, 103, 0, .14);
     --k-wash: rgba(107, 63, 191, .12);
     --def-wash: rgba(93, 104, 117, .14);
-    --mine-wash: rgba(10, 102, 194, .08);
+    --mine-wash: rgba(63, 98, 18, .10);
   }
 }
 
@@ -636,8 +636,8 @@ table.board th, table.board td {
   font-family:"Poppins",var(--sans)}
 .w-brand{display:flex;align-items:center;gap:12px;margin-bottom:26px}
 .w-dot{width:40px;height:40px;border-radius:11px;flex:none;display:grid;
-  place-items:center;font-weight:700;color:#fff;font-size:16px;
-  background:linear-gradient(135deg,var(--accent),#0769de)}
+  place-items:center;font-weight:700;color:var(--accent-ink);font-size:16px;
+  background:linear-gradient(135deg,var(--accent),#4d7c0f)}
 .w-brand b{font-size:19px;display:block}
 .w-brand span{color:var(--fg-dim);font-size:12.5px}
 .w-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
@@ -709,16 +709,19 @@ table.board th, table.board td {
 
 
 /* --------------------------------------------- brand family, per pane */
-/* One family, three signatures: board wears the Sleeper blue, best-
-   available wears the green of a value pill, chat wears violet.  Same
-   navy cockpit underneath - the landing page's palette, draft-tuned. */
+/* One family, three signatures: board wears chalk-lime, best-available
+   the green of a value pill, chat the pale chalk.  Night-game turf
+   underneath - the landing page's field, draft-tuned. */
 
 :root{
-  --sig-board:#2ea9ff; --sig-bypos:#4cd08a; --sig-chat:#b78bf0;
+  --sig-board:#a3e635; --sig-bypos:#4cd08a; --sig-chat:#d9f99d;
+}
+@media (prefers-color-scheme: light){
+  :root{--sig-board:#4d7c0f; --sig-bypos:#16794a; --sig-chat:#5b6f12}
 }
 .hdr-mark{width:26px;height:26px;border-radius:8px;flex:none;display:grid;
-  place-items:center;font:700 12px "Poppins",var(--sans);color:#fff;
-  background:linear-gradient(135deg,var(--sig-board),#0769de);margin-right:2px}
+  place-items:center;font:700 12px "Poppins",var(--sans);color:#071f12;
+  background:linear-gradient(135deg,#a3e635,#4d7c0f);margin-right:2px}
 #hdr{background:linear-gradient(180deg,var(--bg-1),var(--bg))}
 
 .kick{font:600 11px "Poppins",var(--sans);font-style:normal;
@@ -745,13 +748,13 @@ table.board th, table.board td {
 .poshead .pos{font:700 12px "Poppins",var(--sans)}
 
 /* chat: the landing's bubble language, cockpit colours */
-.msg.user .bubble{background:linear-gradient(135deg,#0769de,var(--sig-board));
-  border:0;border-bottom-right-radius:4px}
+.msg.user .bubble{background:linear-gradient(135deg,#65a30d,#a3e635);
+  color:#071f12;border:0;border-bottom-right-radius:4px}
 .msg.bot .bubble{background:var(--bg-1);border:1px solid var(--line);
   border-bottom-left-radius:4px}
 .msg .who{font:500 10px "Poppins",var(--sans);letter-spacing:.04em}
 #chatForm button.primary,.w-form .primary{
-  background:linear-gradient(135deg,var(--sig-board),#0769de);border:0}
+  background:linear-gradient(135deg,#a3e635,#65a30d);color:#071f12;border:0}
 .chips button{border-radius:99px;font-family:"Poppins",var(--sans)}
 
 /* compact tabs pick up the signatures */
@@ -759,3 +762,6 @@ table.board th, table.board td {
 .compact-tabs button:nth-child(2).on{box-shadow:inset 0 -2px 0 var(--sig-board)}
 .compact-tabs button:nth-child(3).on{box-shadow:inset 0 -2px 0 var(--sig-chat)}
 .compact-tabs button{font-family:"Poppins",var(--sans)}
+
+/* squared: the field design has no rounded edges anywhere */
+*, *::before, *::after { border-radius: 0 !important; }

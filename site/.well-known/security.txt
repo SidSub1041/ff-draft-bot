@@ -1,6 +1,7 @@
 # Sid's Draft Copilot - security contact
-Contact: mailto:CONTACT_EMAIL
+Contact: https://github.com/SidSub1041/ff-draft-bot/security/advisories/new
 Expires: 2027-09-01T00:00:00.000Z
 Preferred-Languages: en
 Policy: https://sidsffcopilot.com/privacy
 # The engine, panel and extension are open source; reports welcome.
+# Private disclosure: use the GitHub security-advisory link above.

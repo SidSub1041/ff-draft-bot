@@ -7,8 +7,8 @@
 <meta name="description" content="Short, honest terms for using Draft Copilot.">
 <link rel="stylesheet" href="/assets/fonts/poppins.css">
 <style>
-  :root{--navy:#0d1b2e;--ink:#16283f;--dim:#51637c;--blue:#0e9bff;
-    --deep:#0769de;--line:#dce7f2;
+  :root{--navy:#0b3b1e;--ink:#14261a;--dim:#47624f;--blue:#a3e635;
+    --deep:#3f6212;--line:#cfe6c3;
     --sans:'Poppins',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}
   *{box-sizing:border-box;margin:0}
   /* terms reads as a ruled document - same family, quieter voice */
@@ -26,8 +26,10 @@
   p,ul{color:var(--dim);margin-bottom:12px}
   ul{padding-left:22px}
   li{margin-bottom:7px}
-  code{background:#f1f6fc;border-radius:5px;padding:1px 6px;font-size:13px}
+  code{background:#eef7e6;border-radius:5px;padding:1px 6px;font-size:13px}
   strong{color:var(--ink)}
+  /* squared: the field design has no rounded edges */
+  *,*::before,*::after{border-radius:0 !important}
 </style>
 <script defer src="/_vercel/insights/script.js"></script>
 </head>
@@ -36,7 +38,7 @@
 <header class="site">
   <nav>
     <a class="wordmark" href="/">Sid's <span>Draft Copilot</span></a>
-    <a class="navlink" href="/about">About</a>
+    <a class="navlink" href="/">Home</a>
     <a class="navlink" href="/privacy">Privacy</a>
     <a class="navlink" href="/terms" aria-current="page">Terms</a>
   </nav>
@@ -69,7 +71,9 @@
   <p>These terms may change; the current version will always be posted here with its effective date. Continuing to use the service after a change means you accept the new terms.</p>
 
   <h2>Contact</h2>
-  <p>Questions: <a href="mailto:CONTACT_EMAIL">CONTACT_EMAIL</a>. How we handle data is covered in the <a href="/privacy">privacy policy</a>.</p>
+  <p>Questions: open an issue at
+     <a href="https://github.com/SidSub1041/ff-draft-bot/issues">github.com/SidSub1041/ff-draft-bot</a>.
+     How we handle data is covered in the <a href="/privacy">privacy policy</a>.</p>
 </main>
 
 <footer class="site">
